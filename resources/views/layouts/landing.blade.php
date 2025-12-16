@@ -48,8 +48,8 @@
             </div>
 
             <div class="flex gap-3">
-                <a href="" class="px-5 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Masuk</a>
-                <a href="" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-600/30">
+                <a href="{{ route('login') }}" class="px-5 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Masuk</a>
+                <a href="{{ route('register') }}" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-600/30">
                     Daftar Sekarang <i class="fa-solid fa-arrow-right ml-1"></i>
                 </a>
             </div>

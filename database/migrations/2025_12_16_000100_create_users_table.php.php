@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -22,7 +21,14 @@ class CreateUsersTable extends Migration
             $table->string('nama_lengkap');
             $table->string('nomor_hp');
             $table->string('role'); // misal: 'admin', 'pembudidaya', 'petugas'
-            $table->boolean('status_aktif')->default(true);
+            
+            // PERUBAHAN 1: Default status sebaiknya false (belum aktif) sampai verifikasi OTP
+            $table->boolean('status_aktif')->default(false); 
+            
+            // PERUBAHAN 2: Tambahkan kolom OTP (PENTING!)
+            $table->string('otp_code')->nullable();       // Menyimpan kode 4 digit
+            $table->timestamp('otp_expired_at')->nullable(); // Menyimpan waktu kadaluarsa
+            
             $table->timestamp('tanggal_dibuat')->useCurrent();
             $table->timestamps();
         });
