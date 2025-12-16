@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('penugasan', function (Blueprint $table) {
-        $table->id('id_penugasan');
+        Schema::create('verifikasi', function (Blueprint $table) {
+        $table->id('id_verifikasi');
 
         $table->unsignedBigInteger('id_profil_pembudidaya');
         $table->foreign('id_profil_pembudidaya')->references('id_profil_pembudidaya')->on('profil_pembudidaya');
@@ -22,10 +22,11 @@ return new class extends Migration
         $table->unsignedBigInteger('id_profil_petugas');
         $table->foreign('id_profil_petugas')->references('id_profil_petugas')->on('profil_petugas_upt');
 
-        $table->string('status_tugas');
-        $table->date('tanggal_tugas');
+        $table->string('status_verifikasi');
+        $table->text('catatan')->nullable();
+        $table->date('tanggal_verifikasi');
         $table->timestamps();
-     });
+    });
 }
 
     /**
@@ -35,6 +36,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('penugasans');
+        Schema::dropIfExists('verifikasi');
     }
 };
