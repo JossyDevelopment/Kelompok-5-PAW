@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\PembudidayaController; 
 
 Route::get('/', function () {
     return view('welcome');
@@ -56,4 +58,35 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/petugas/dashboard', function () {
         return "Halo Petugas!";
     });
+});
+
+// Update bagian Dashboard Pembudidaya di web.php
+
+Route::middleware(['auth'])->group(function () {
+    
+    // Group Prefix URL Pembudidaya
+    Route::prefix('pembudidaya')->name('pembudidaya.')->group(function() {
+        
+        // 1. Dashboard & Profil
+        Route::get('/dashboard', [PembudidayaController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profil', [PembudidayaController::class, 'profil'])->name('profil');
+        Route::post('/profil/update', [PembudidayaController::class, 'updateProfil'])->name('profil.update');
+        
+        // 2. Bantuan
+        Route::get('/ajukan', [PembudidayaController::class, 'ajukanBantuan'])->name('ajukan');
+        Route::post('/ajukan', [PembudidayaController::class, 'storeBantuan'])->name('ajukan.store');
+        
+        Route::get('/status', [PembudidayaController::class, 'statusLacak'])->name('status');
+        
+        Route::get('/penerimaan', [PembudidayaController::class, 'penerimaan'])->name('penerimaan');
+        Route::post('/penerimaan', [PembudidayaController::class, 'storeKonfirmasi'])->name('penerimaan.store');
+        
+        // 3. Pendampingan
+        Route::get('/pendampingan-ajukan', [PembudidayaController::class, 'ajukanPendampingan'])->name('pendampingan.ajukan');
+        Route::post('/pendampingan-ajukan', [PembudidayaController::class, 'storePendampingan'])->name('pendampingan.store');
+        
+        Route::get('/pendampingan-jadwal', [PembudidayaController::class, 'jadwalFeedback'])->name('pendampingan.jadwal');
+        Route::post('/pendampingan-feedback', [PembudidayaController::class, 'storeFeedback'])->name('pendampingan.feedback');
+    });
+
 });
