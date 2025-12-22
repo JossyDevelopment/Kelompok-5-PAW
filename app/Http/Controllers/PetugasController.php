@@ -83,6 +83,29 @@ public function storeVerifikasi(Request $request)
     return back()->with('success', 'Status validasi berhasil diperbarui.');
 }
 
+// Pastikan nama fungsinya storeHasilVerifikasiDokumen (Sesuai web.php)
+public function storeHasilVerifikasiDokumen(Request $request)
+{
+    $request->validate([
+        'id_permohonan' => 'required|exists:permohonan_bantuans,id',
+        'keputusan_akhir' => 'required', // Sesuai name="keputusan_akhir" di Blade
+        'catatan_verifikasi' => 'required' // Sesuai name="catatan_verifikasi" di Blade
+    ]);
+
+    $permohonan = PermohonanBantuan::findOrFail($request->id_permohonan);
+    
+    // Update status berdasarkan input keputusan_akhir
+    $permohonan->update([
+        'status' => $request->keputusan_akhir,
+        'catatan_petugas' => $request->catatan_verifikasi,
+        'updated_at' => now()
+    ]);
+
+    // Redirect kembali ke daftar dokumen setelah selesai
+    return redirect()->route('petugas.bantuan.dokumen.list')
+                     ->with('success', 'Verifikasi dokumen berhasil diselesaikan.');
+}
+
     public function listValidasiUsaha()
 {
     $pembudidaya = User::join('profil_pembudidaya', 'users.id_user', '=', 'profil_pembudidaya.id_user')
@@ -342,19 +365,25 @@ public function uploadBAST(Request $request)
 
    public function penyaluranIndex()
 {
-    // 1. Data untuk Form Distribusi (Status: disetujui_admin)
-    $penerima = PermohonanBantuan::join('profil_pembudidaya', 'permohonan_bantuans.id_user', '=', 'profil_pembudidaya.id_user')
-        ->where('permohonan_bantuans.status', 'disetujui_admin')
-        ->select('permohonan_bantuans.id', 'profil_pembudidaya.nama', 'permohonan_bantuans.jenis_bantuan')
+    // 1. Data untuk Form Distribusi
+    // Gunakan leftJoin agar data tetap muncul meskipun profil belum sempurna
+    $penerima = PermohonanBantuan::leftJoin('profil_pembudidaya', 'permohonan_bantuans.id_user', '=', 'profil_pembudidaya.id_user')
+        // Pastikan status ini SAMA dengan nilai (value) yang ada di <option> View Detail Dokumen
+        ->whereIn('permohonan_bantuans.status', ['disetujui_admin', 'direkomendasikan']) 
+        ->select(
+            'permohonan_bantuans.id', 
+            'profil_pembudidaya.nama', 
+            'permohonan_bantuans.jenis_bantuan',
+            'permohonan_bantuans.id_user' // Tambahan untuk tracking
+        )
         ->get();
 
-    // 2. Data untuk Form BAST (Status: dikirim)
-    $penerima_bast = PermohonanBantuan::join('profil_pembudidaya', 'permohonan_bantuans.id_user', '=', 'profil_pembudidaya.id_user')
+    // 2. Data untuk Form BAST
+    $penerima_bast = PermohonanBantuan::leftJoin('profil_pembudidaya', 'permohonan_bantuans.id_user', '=', 'profil_pembudidaya.id_user')
         ->where('permohonan_bantuans.status', 'dikirim')
         ->select('permohonan_bantuans.id', 'profil_pembudidaya.nama', 'permohonan_bantuans.jenis_bantuan')
         ->get();
 
-    // Pastikan kedua variabel dikirim ke view
     return view('petugas.penyaluran', compact('penerima', 'penerima_bast'));
 }
        // Update fungsi di PetugasController.php

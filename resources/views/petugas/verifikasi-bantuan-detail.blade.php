@@ -74,7 +74,7 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-500 mb-2">Keputusan</label>
                     <select name="keputusan_akhir" required class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="direkomendasikan">Direkomendasikan Lolos Kelayakan</option>
+                        <option value="disetujui_admin">Direkomendasikan Lolos Kelayakan</option>
                         <option value="revisi">Perlu Perbaikan Dokumen</option>
                         <option value="ditolak">Ditolak</option>
                     </select>

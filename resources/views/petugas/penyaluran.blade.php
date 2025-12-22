@@ -20,7 +20,9 @@
                 <select name="id_permohonan" id="selectPenerima" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-green-500 bg-gray-50/50" required>
                     <option value="">Cari nama pembudidaya</option>
                     @forelse($penerima as $p)
-                        <option value="{{ $p->id }}" data-bantuan="{{ ucfirst($p->jenis_bantuan) }}">{{ $p->nama }}</option>
+                        <option value="{{ $p->id }}" data-bantuan="{{ ucfirst($p->jenis_bantuan) }}">
+                            {{ $p->nama ?? 'User ID: '.$p->id_user . ' (Profil Belum Diisi)' }}
+                        </option>
                     @empty
                         <option value="" disabled>Tidak ada data dengan status 'disetujui_admin'</option>
                     @endforelse
