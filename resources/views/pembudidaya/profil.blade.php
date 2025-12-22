@@ -19,7 +19,7 @@
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                         <i class="fa-regular fa-id-card"></i>
                     </span>
-                    <input type="text" name="nik" value="{{ $user->nik ?? '' }}" class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="NIK" value="{{ $user->profil->NIK ?? '' }}" class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
 
@@ -29,7 +29,7 @@
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                         <i class="fa-regular fa-user"></i>
                     </span>
-                    <input type="text" name="nama_lengkap" value="{{ $user->nama_lengkap ?? '' }}" class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="nama" value="{{ $user->profil->nama ?? '' }}" class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
 
@@ -85,11 +85,11 @@
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-2">Jenis Komoditas Utama</label>
                 <div class="relative">
-                    <select name="komoditas" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
-                        <option value="Udang" {{ ($user->komoditas ?? '') == 'Udang' ? 'selected' : '' }}>Udang</option>
-                        <option value="Lele" {{ ($user->komoditas ?? '') == 'Lele' ? 'selected' : '' }}>Lele</option>
-                        <option value="Nila" {{ ($user->komoditas ?? '') == 'Nila' ? 'selected' : '' }}>Nila</option>
-                        <option value="Bandeng" {{ ($user->komoditas ?? '') == 'Bandeng' ? 'selected' : '' }}>Bandeng</option>
+                    <select name="jenis_ikan" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
+                        <option value="Udang" {{ ($user->profil->usaha->jenis_ikan ?? '') == 'Udang' ? 'selected' : '' }}>Udang</option>
+                        <option value="Lele" {{ ($user->profil->usaha->jenis_ikan ?? '') == 'Lele' ? 'selected' : '' }}>Lele</option>
+                        <option value="Nila" {{ ($user->profil->usaha->jenis_ikan ?? '') == 'Nila' ? 'selected' : '' }}>Nila</option>
+                        <option value="Bandeng" {{ ($user->profil->usaha->jenis_ikan ?? '') == 'Bandeng' ? 'selected' : '' }}>Bandeng</option>
                     </select>
                     <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
                         <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -102,17 +102,17 @@
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                         <i class="fa-solid fa-expand"></i> </span>
-                    <input type="number" name="luas_lahan" value="{{ $user->luas_lahan ?? '' }}" placeholder="Contoh: 1000" class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="number" name="luas_kolam" value="{{ $user->profil->usaha->luas_kolam ?? '' }}" placeholder="Contoh: 1000" class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
 
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-600 mb-2">Sistem Budidaya / Teknologi</label>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Tipe Kolam</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                         <i class="fa-solid fa-layer-group"></i>
                     </span>
-                    <input type="text" name="sistem_budidaya" value="{{ $user->sistem_budidaya ?? '' }}" placeholder="Tambak Intensif" class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" name="tipe_kolam" value="{{ $user->profil->usaha->tipe_kolam ?? '' }}" placeholder="Tambak Intensif" class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
         </div>

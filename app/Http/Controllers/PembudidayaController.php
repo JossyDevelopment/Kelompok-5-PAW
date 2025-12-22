@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\PermohonanBantuan;
 use App\Models\PengajuanPendampingan;
+use App\Models\ProfilPembudidaya;
+use App\Models\wilayah;
+use App\Models\UsahaBudidaya;
 use Carbon\Carbon;
 
 class PembudidayaController extends Controller
@@ -18,53 +21,45 @@ class PembudidayaController extends Controller
     {
         $id_user = Auth::user()->id_user;
 
+        // Statistik Riil
         $total_permohonan = PermohonanBantuan::where('id_user', $id_user)->count();
-        
         $pendampingan_selesai = PengajuanPendampingan::where('id_user', $id_user)
                                 ->where('status', 'selesai')->count();
-
-        // Data Dummy untuk nilai bantuan (karena belum ada tabel anggaran)
         $total_bantuan = 0; 
 
-        // Cek kelengkapan profil user
-        $user = Auth::user();
-        $status_verifikasi = ($user->nik && $user->alamat) ? 'Lengkap' : 'Belum Lengkap';
+        // FIX: Cek kelengkapan ke tabel profil_pembudidaya (bukan tabel users)
+        $profil = ProfilPembudidaya::where('id_user', $id_user)->first();
+        // Cek NIK (huruf besar sesuai migration) dan alamat
+        $status_verifikasi = ($profil && $profil->NIK && $profil->alamat) ? 'Lengkap' : 'Belum Lengkap';
+
+        // 1. Ambil data Bantuan untuk Timeline
         $bantuan = PermohonanBantuan::where('id_user', $id_user)
                 ->select('jenis_bantuan as title', 'created_at', 'status')
                 ->get()
                 ->map(function($item) {
-                    $item->type = 'Bantuan';
-                    $item->description = 'Pengajuan Bantuan: ' . ucfirst($item->title);
-                    return $item;
+                    return [
+                        'title' => 'Bantuan: ' . ucfirst($item->title),
+                        'date'  => $item->created_at->diffForHumans(),
+                        'description' => 'Status: ' . ucfirst(str_replace('_', ' ', $item->status)),
+                        'status' => ($item->status == 'selesai') ? 'done' : 'current'
+                    ];
                 });
 
-    // 2. Ambil Pendampingan
-    $pendampingan = PengajuanPendampingan::where('id_user', $id_user)
+        // 2. Ambil data Pendampingan untuk Timeline
+        $pendampingan = PengajuanPendampingan::where('id_user', $id_user)
                 ->select('topik as title', 'created_at', 'status')
                 ->get()
                 ->map(function($item) {
-                    $item->type = 'Pendampingan';
-                    $item->description = 'Permohonan Pendampingan: ' . $item->title;
-                    return $item;
+                    return [
+                        'title' => 'Pendampingan: ' . $item->title,
+                        'date'  => $item->created_at->diffForHumans(),
+                        'description' => 'Status: ' . ucfirst($item->status),
+                        'status' => ($item->status == 'selesai') ? 'done' : 'current'
+                    ];
                 });
 
-    // 3. Gabung (Merge) dan Urutkan dari yang terbaru
-    $timeline_activities = $bantuan->concat($pendampingan)->sortByDesc('created_at')->take(5);
-
-        // Timeline: Mengambil 5 data terbaru dari tabel Permohonan
-        $timeline_activities = PermohonanBantuan::where('id_user', $id_user)
-                                ->latest()
-                                ->take(5)
-                                ->get()
-                                ->map(function($item) {
-                                    // Format data agar sesuai tampilan blade
-                                    return [
-                                        'title' => 'Permohonan: ' . ucfirst($item->jenis_bantuan),
-                                        'date'  => $item->created_at->diffForHumans(),
-                                        'description' => 'Status saat ini: ' . ucfirst(str_replace('_', ' ', $item->status)),
-                                        'status' => ($item->status == 'selesai') ? 'done' : 'current'
-                                    ];
-                                });
+        // 3. Gabungkan dan Urutkan (Hapus baris yang menimpa variabel di bawahnya)
+        $timeline_activities = $bantuan->concat($pendampingan)->sortByDesc('date')->take(5);
 
         return view('pembudidaya.dashboard', compact(
             'total_permohonan', 'pendampingan_selesai', 'status_verifikasi', 'total_bantuan', 'timeline_activities'
@@ -75,42 +70,73 @@ class PembudidayaController extends Controller
     // 2. PROFIL
     // ==========================================================
     public function profil() {
-        return view('pembudidaya.profil', ['user' => Auth::user()]);
+        // Ambil user beserta profilnya
+        $user = Auth::user();
+        $profil = ProfilPembudidaya::where('id_user', $user->id_user)->first();
+        return view('pembudidaya.profil', compact('user', 'profil'));
     }
+    
 
     public function updateProfil(Request $request)
-    {
-        $rules = [];
-        
-        // LOGIKA Validasi Dinamis
-        // Jika yang dikirim adalah Form Data Diri (ada field nama_lengkap)
-        if ($request->has('nama_lengkap')) {
-            $rules = [
-                'nama_lengkap' => 'required|string',
-                'nik' => 'required|numeric|digits:16',
-                'nomor_hp' => 'required',
-                'alamat' => 'nullable|string',
-            ];
-        } 
-        // Jika yang dikirim adalah Form Detail Usaha (ada field komoditas)
-        elseif ($request->has('komoditas')) {
-            $rules = [
-                'komoditas' => 'required',
-                'luas_lahan' => 'nullable|numeric',
-                'sistem_budidaya' => 'nullable|string',
-            ];
-        }
+{
+    $id_user = Auth::user()->id_user;
+    
+    // Ambil data profil yang sudah ada atau siapkan variabel null
+    $profil = ProfilPembudidaya::where('id_user', $id_user)->first();
 
-        // Jalankan Validasi
-        $request->validate($rules);
+    // --- BAGIAN 1: UPDATE DATA DIRI (Hanya jika input 'nama' ada) ---
+    if ($request->has('nama')) {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'NIK' => 'required|numeric|digits:16',
+            'nomor_hp' => 'required',
+            'alamat' => 'required|string',
+        ]);
 
-        // Simpan Data
-        $user = User::find(Auth::user()->id_user);
-        $user->update($request->except(['_token']));
-
-        return back()->with('success', 'Data Berhasil Disimpan');
+        $profil = ProfilPembudidaya::updateOrCreate(
+            ['id_user' => $id_user], 
+            [
+                'nama' => $request->nama,
+                'NIK'  => $request->NIK,
+                'alamat' => $request->alamat,
+                'nomor_hp' => $request->nomor_hp,
+                'kecamatan' => $request->kecamatan ?? '-',
+                'desa' => $request->desa ?? '-',
+                'tipe_pembudidaya' => 'Perorangan',
+            ]
+        );
     }
 
+    // --- BAGIAN 2: UPDATE DETAIL USAHA (Hanya jika input 'jenis_ikan' ada) ---
+    if ($request->has('jenis_ikan')) {
+        $request->validate([
+            'jenis_ikan' => 'required',
+            'luas_kolam' => 'required|numeric',
+            'tipe_kolam' => 'required',
+        ]);
+
+        // Pastikan profil sudah ada sebelum membuat detail usaha
+        if (!$profil) {
+            $profil = ProfilPembudidaya::updateOrCreate(['id_user' => $id_user], [
+                'nama' => Auth::user()->nama_lengkap,
+                'nomor_hp' => Auth::user()->nomor_hp,
+            ]);
+        }
+
+        UsahaBudidaya::updateOrCreate(
+            ['id_profil_pembudidaya' => $profil->id_profil_pembudidaya],
+            [
+                'jenis_ikan' => $request->jenis_ikan,
+                'luas_kolam' => $request->luas_kolam,
+                'tipe_kolam'  => $request->tipe_kolam,
+                'jumlah_kolam' => 1,
+                'kapasitas_produksi' => '0'
+            ]
+        );
+    }
+
+    return back()->with('success', 'Data Berhasil Diperbarui');
+}
     // ==========================================================
     // 3. AJUKAN BANTUAN
     // ==========================================================

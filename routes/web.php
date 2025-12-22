@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PembudidayaController; 
+use App\Http\Controllers\PetugasController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -55,9 +56,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return "Halo Admin!";
     });
-    Route::get('/petugas/dashboard', function () {
-        return "Halo Petugas!";
-    });
+    // Route::get('/petugas/dashboard', function () {
+    //     return "Halo Petugas!";
+    // });
 });
 
 // Update bagian Dashboard Pembudidaya di web.php
@@ -87,6 +88,40 @@ Route::middleware(['auth'])->group(function () {
         
         Route::get('/pendampingan-jadwal', [PembudidayaController::class, 'jadwalFeedback'])->name('pendampingan.jadwal');
         Route::post('/pendampingan-feedback', [PembudidayaController::class, 'storeFeedback'])->name('pendampingan.feedback');
+    });
+
+});
+
+Route::middleware(['auth'])->group(function () {
+
+    // ROUTE PETUGAS UPT
+    Route::prefix('petugas')->name('petugas.')->group(function() {
+        Route::get('/verifikasi-budidaya', [PetugasController::class, 'verifikasiBudidaya'])->name('verifikasi');
+        // Halaman Daftar Detail (setelah klik Mulai Verifikasi)
+        Route::get('/verifikasi-budidaya/list', [PetugasController::class, 'listVerifikasiData'])->name('verifikasi.list');
+        Route::post('/verifikasi/store', [PetugasController::class, 'storeVerifikasi'])->name('verifikasi.store');
+        Route::get('/validasi-usaha/list', [PetugasController::class, 'listValidasiUsaha'])->name('validasi.list');
+        Route::get('/jadwal-survei/list', [PetugasController::class, 'listJadwalSurvei'])->name('survei.list');
+        Route::get('/verifikasi-bantuan', [PetugasController::class, 'verifikasiBantuan'])->name('bantuan.index');
+        Route::get('/verifikasi-bantuan/list', [PetugasController::class, 'listKelayakanBantuan'])->name('bantuan.list');
+        Route::get('/verifikasi-bantuan/detail/{id}', [PetugasController::class, 'detailVerifikasiBantuan'])->name('bantuan.detail');
+        Route::post('/verifikasi-bantuan/selesai', [PetugasController::class, 'storeHasilVerifikasiDokumen'])->name('bantuan.selesai');
+        Route::post('/verifikasi-bantuan/kelayakan', [PetugasController::class, 'storeKelayakanBantuan'])->name('bantuan.kelayakan');
+        Route::get('/verifikasi-bantuan/dokumen', [PetugasController::class, 'listVerifikasiDokumen'])->name('bantuan.dokumen.list');
+        Route::get('/verifikasi-bantuan/dokumen/{id}', [PetugasController::class, 'detailVerifikasiDokumen'])->name('bantuan.dokumen.detail');
+        Route::post('/verifikasi-bantuan/dokumen/store', [PetugasController::class, 'storeVerifikasiDokumen'])->name('bantuan.dokumen.store');
+        Route::get('/penyaluran', [PetugasController::class, 'penyaluranIndex'])->name('penyaluran.index');
+        Route::post('/penyaluran/store', [PetugasController::class, 'storePenyaluran'])->name('penyaluran.store');
+        Route::post('/penyaluran/upload-bast', [PetugasController::class, 'uploadBAST'])->name('penyaluran.bast');
+        Route::get('/monitoring', [PetugasController::class, 'monitoringIndex'])->name('monitoring.index');
+        Route::post('/monitoring/store', [PetugasController::class, 'storeJadwalMonitoring'])->name('monitoring.store');
+        Route::get('/pendampingan/daftar', [PetugasController::class, 'daftarPendampingan'])->name('pendampingan.index');
+        Route::get('/pendampingan/input', [PetugasController::class, 'inputHasilPendampingan'])->name('pendampingan.input');
+        Route::post('/pendampingan/jadwal/store', [PetugasController::class, 'storeJadwalPendampingan'])->name('pendampingan.storeJadwal');
+        Route::get('/pendampingan/detail/{id}', [PetugasController::class, 'detailPendampingan'])->name('pendampingan.detail');
+        Route::post('/pendampingan/input/store', [PetugasController::class, 'storeHasilPendampingan'])->name('pendampingan.store');
+        Route::post('/verifikasi/jadwal/store', [PetugasController::class, 'storeJadwalSurvei'])->name('jadwal.store');
+        Route::post('/verifikasi/jadwal/cancel', [PetugasController::class, 'cancelJadwalSurvei'])->name('jadwal.cancel');
     });
 
 });

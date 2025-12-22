@@ -21,6 +21,11 @@ class ProfilPembudidaya extends Model
     protected $primaryKey = 'id_profil_pembudidaya';
     protected $guarded = [];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
+
     public function wilayah(): BelongsTo
     {
         return $this->belongsTo(Wilayah::class, 'id_wilayah', 'id_wilayah');
@@ -39,6 +44,10 @@ class ProfilPembudidaya extends Model
     public function verifikasi(): HasMany
     {
         return $this->hasMany(Verifikasi::class, 'id_profil_pembudidaya', 'id_profil_pembudidaya');
+    }
+
+    public function usaha() {
+        return $this->hasOne(UsahaBudidaya::class, 'id_profil_pembudidaya', 'id_profil_pembudidaya');
     }
 
 }

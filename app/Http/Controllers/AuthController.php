@@ -57,7 +57,7 @@ class AuthController extends Controller
             } elseif ($user->role === 'pembudidaya') {
                 return redirect()->intended('/pembudidaya/dashboard');
             } else {
-                return redirect()->intended('/petugas/dashboard');
+                return redirect()->intended('/petugas/verifikasi-budidaya');
             }
         }
 
@@ -256,6 +256,6 @@ public function sendResetLinkEmail(Request $request)
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect('/login');
     }
 }

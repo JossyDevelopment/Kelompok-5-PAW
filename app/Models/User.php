@@ -36,4 +36,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'status_aktif' => 'boolean', // Casting agar otomatis jadi true/false
     ];
+
+    // app/Models/User.php
+    public function profil()
+    {
+        return $this->hasOne(ProfilPembudidaya::class, 'id_user', 'id_user');
+    }
 }

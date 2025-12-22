@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User; // Import Model User
 use Illuminate\Support\Facades\Hash; // Import Hash untuk password
+use Illuminate\Support\Facades\DB; // Import Hash untuk password
 
 class UserSeeder extends Seeder
 {
@@ -15,41 +16,42 @@ class UserSeeder extends Seeder
      * @return void
      */
     public function run()
-    {
-        // 1. Akun Administrator
-        User::create([
-            'username' => 'admin',
+{
+    // Jalur A: ADMINISTRATOR (Via Seeder)
+    User::updateOrCreate(
+        ['username' => 'admin'],
+        [
             'email' => 'admin@dinas.com',
-            'password' => Hash::make('password123'), // Password sama semua biar gampang
+            'password' => Hash::make('password123'),
             'nama_lengkap' => 'Administrator Utama',
-            'nomor_hp' => '081111111111',
+            'nomor_hp' => '081234567890',
             'role' => 'admin',
-            'status_aktif' => true, // Langsung aktif
-            'otp_code' => null,
-        ]);
+            'status_aktif' => true,
+        ]
+    );
 
-        // 2. Akun Petugas UPT
-        User::create([
-            'username' => 'petugas1',
+    // Jalur B: PETUGAS UPT (Via Seeder + Profil Wajib)
+    $petugas = User::updateOrCreate(
+        ['username' => 'petugas1'],
+        [
             'email' => 'petugas@dinas.com',
             'password' => Hash::make('password123'),
             'nama_lengkap' => 'Budi Santoso (Petugas)',
             'nomor_hp' => '082222222222',
-            'role' => 'petugas', // Sesuai dengan logic login redirect
-            'status_aktif' => true, 
-            'otp_code' => null,
-        ]);
+            'role' => 'petugas',
+            'status_aktif' => true,
+        ]
+    );
 
-        // 3. Akun Pembudidaya (Dummy yang sudah aktif)
-        User::create([
-            'username' => 'pembudidaya1',
-            'email' => 'pembudidaya@gmail.com',
-            'password' => Hash::make('password123'),
-            'nama_lengkap' => 'Ahmad Pembudidaya',
-            'nomor_hp' => '083333333333',
-            'role' => 'pembudidaya',
-            'status_aktif' => true, // Set true agar bisa login tanpa OTP
-            'otp_code' => null,
-        ]);
-    }
+    // Wajib di-seed agar Petugas bisa melakukan verifikasi (FK id_profil_petugas)
+    DB::table('profil_petugas_upt')->updateOrInsert(
+        ['id_user' => $petugas->id_user],
+        [
+            'nama' => 'Budi Santoso',
+            'upt_wilayah' => 'UPT Wilayah 1',
+            'nomor_hp' => '082222222222',
+            'jabatan' => 'Verifikator Lapangan',
+        ]
+    );
+}
 }
