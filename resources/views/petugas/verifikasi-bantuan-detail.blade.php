@@ -38,55 +38,52 @@
         </div>
     </div>
 
-    <div class="lg:col-span-2 space-y-6">
-        <form action="{{ route('petugas.bantuan.selesai') }}" method="POST">
+   <div class="lg:col-span-2 space-y-6">
+        <form action="{{ route('petugas.bantuan.kelayakan') }}" method="POST">
             @csrf
             <input type="hidden" name="id_permohonan" value="{{ $permohonan->id }}">
 
-            <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-8">
-                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Daftar Dokumen yang Diajukan (Wajib)</h3>
-                
-                @php $docs = ['Salinan KTP Pemohon', 'Surat Keterangan Usaha (SKU)', 'Foto Lokasi Usaha']; @endphp
-                
-                @foreach($docs as $index => $doc)
-                <div class="flex items-center justify-between py-4 border-b border-gray-50 last:border-0">
-                    <div class="flex-1">
-                        <p class="text-sm font-bold text-gray-700">{{ $index + 1 }}. {{ $doc }}</p>
-                        <div class="mt-3 flex gap-6">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="doc_{{ $index }}" value="diterima" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500" required>
-                                <span class="text-xs font-bold text-gray-600">Diterima</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="doc_{{ $index }}" value="ditolak" class="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500">
-                                <span class="text-xs font-bold text-gray-600">Ditolak</span>
-                            </label>
-                        </div>
-                    </div>
-                    <button type="button" class="px-4 py-2 bg-green-700 text-white text-[10px] font-bold rounded-lg hover:bg-green-800 transition">Lihat Dokumen</button>
+            {{-- Bagian Ceklis (Sesuai image_669e43.png) --}}
+            <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Ceklis Kriteria Kelayakan (Persyaratan Mutlak)</h3>
+                <div class="space-y-4">
+                    @php 
+                        $kriteria = [
+                            '1. Pembudidaya terdaftar dan terverifikasi data identitas.',
+                            '2. Hasil Survei Lapangan menyatakan lokasi dan usaha layak (Laporan tersedia).',
+                            '3. Belum pernah menerima bantuan sejenis dalam 2 tahun terakhir.',
+                            '4. Status kepemilikan lahan jelas dan sah (milik sendiri/sewa jangka panjang).'
+                        ];
+                    @endphp
+                    @foreach($kriteria as $k)
+                    <label class="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition">
+                        <input type="checkbox" class="mt-1 w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500" required>
+                        <span class="text-sm text-gray-700 font-medium">{{ $k }}</span>
+                    </label>
+                    @endforeach
                 </div>
-                @endforeach
+                <div class="p-4 bg-red-50 border border-red-100 rounded-xl text-center">
+                    <p class="text-xs font-bold text-red-600 uppercase tracking-widest">Ringkasan: Pastikan semua kriteria terpenuhi</p>
+                </div>
             </div>
 
-            <div class="mt-8 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Keputusan Akhir Verifikasi Dokumen</h3>
-                
+            {{-- Bagian Keputusan --}}
+            <div class="mt-6 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Keputusan Verifikasi Kelayakan</h3>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-2">Keputusan</label>
-                    <select name="keputusan_akhir" required class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-500 outline-none">
-                        <option value="disetujui_admin">Direkomendasikan Lolos Kelayakan</option>
-                        <option value="revisi">Perlu Perbaikan Dokumen</option>
+                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Pilih Keputusan Akhir:</label>
+                    <select name="hasil_kelayakan" required class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-500 outline-none appearance-none bg-no-repeat bg-[right_1rem_center]">
+                        <option value="disetujui">Direkomendasikan Lolos Kelayakan</option>
+                        <option value="revisi">Perlu Revisi Lapangan</option>
                         <option value="ditolak">Ditolak</option>
                     </select>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-2">Catatan Verifikasi (Wajib diisi):</label>
-                    <textarea name="catatan_verifikasi" required rows="4" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-green-500 outline-none" placeholder="Ringkasan hasil verifikasi..."></textarea>
+                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Catatan Resmi Petugas (Wajib diisi):</label>
+                    <textarea name="catatan_kelayakan" required rows="4" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-green-500 outline-none" placeholder="Jelaskan alasan kelayakan atau penolakan berdasarkan kriteria di atas..."></textarea>
                 </div>
-
-                <button type="submit" class="w-full bg-green-700 text-white py-4 rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/20">
-                    Selesaikan Verifikasi Dokumen
+                <button type="submit" class="w-full bg-green-700 text-white py-4 rounded-xl font-bold hover:bg-green-800 transition">
+                    Terapkan Keputusan & Lanjutkan Verifikasi Dokumen
                 </button>
             </div>
         </form>

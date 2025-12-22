@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PembudidayaController; 
 use App\Http\Controllers\PetugasController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -124,4 +125,40 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/verifikasi/jadwal/cancel', [PetugasController::class, 'cancelJadwalSurvei'])->name('jadwal.cancel');
     });
 
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Prefix URL /admin/
+    Route::prefix('admin')->name('admin.')->group(function() {
+        Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+        
+        // Rute placeholder untuk menu lainnya sesuai sidebar gambar
+        Route::get('/master-data', function() { return "Halaman Master Data"; })->name('master');
+        Route::get('/master/komoditas', [AdminController::class, 'komoditasIndex'])->name('master.komoditas');
+        Route::put('/master/komoditas/{id}/update', [AdminController::class, 'komoditasUpdate'])->name('master.komoditas.update');
+        Route::post('/master/komoditas/store', [AdminController::class, 'komoditasStore'])->name('master.komoditas.store');
+        Route::delete('/master/komoditas/{id}', [AdminController::class, 'komoditasDestroy'])->name('master.komoditas.destroy');
+
+        Route::get('/master/wilayah', [AdminController::class, 'wilayahIndex'])->name('master.wilayah');
+        Route::post('/master/wilayah/store', [AdminController::class, 'wilayahStore'])->name('master.wilayah.store');
+        Route::put('/master/wilayah/{id}/update', [AdminController::class, 'wilayahUpdate'])->name('master.wilayah.update');
+        Route::delete('/master/wilayah/{id}', [AdminController::class, 'wilayahDestroy'])->name('master.wilayah.destroy');
+
+        Route::get('/master/jenis-bantuan', [AdminController::class, 'jenisBantuanIndex'])->name('master.jenis_bantuan');
+        Route::post('/master/jenis-bantuan/store', [AdminController::class, 'jenisBantuanStore'])->name('master.jenis_bantuan.store');
+        Route::put('/master/jenis-bantuan/{id}/update', [AdminController::class, 'jenisBantuanUpdate'])->name('master.jenis_bantuan.update');
+        Route::delete('/master/jenis-bantuan/{id}', [AdminController::class, 'jenisBantuanDestroy'])->name('master.jenis_bantuan.destroy');
+
+        Route::get('/master/topik', [AdminController::class, 'topikIndex'])->name('master.topik');
+        Route::post('/master/topik/store', [AdminController::class, 'topikStore'])->name('master.topik.store');
+        Route::put('/master/topik/{id}/update', [AdminController::class, 'topikUpdate'])->name('master.topik.update');
+        Route::delete('/master/topik/{id}', [AdminController::class, 'topikDestroy'])->name('master.topik.destroy');
+        Route::get('/permohonan', [AdminController::class, 'permohonanIndex'])->name('permohonan.index');
+        Route::get('/permohonan/data/{id}', [AdminController::class, 'getDetailData'])->name('permohonan.data');
+        Route::put('/permohonan/verifikasi/{id}', [AdminController::class, 'permohonanUpdateVerifikasi'])->name('permohonan.verifikasi.update');
+        Route::delete('/permohonan/{id}', [AdminController::class, 'permohonanDestroy'])->name('permohonan.destroy');
+
+        Route::get('/pendampingan', [AdminController::class, 'pendampinganIndex'])->name('pendampingan.index');
+        Route::get('/laporan', [AdminController::class, 'laporanIndex'])->name('laporan.index');
+    });
 });

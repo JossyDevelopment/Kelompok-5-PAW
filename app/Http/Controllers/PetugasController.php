@@ -88,22 +88,20 @@ public function storeHasilVerifikasiDokumen(Request $request)
 {
     $request->validate([
         'id_permohonan' => 'required|exists:permohonan_bantuans,id',
-        'keputusan_akhir' => 'required', // Sesuai name="keputusan_akhir" di Blade
-        'catatan_verifikasi' => 'required' // Sesuai name="catatan_verifikasi" di Blade
+        'status' => 'required', // Sesuai name="status" di Blade Dokumen
+        'catatan' => 'required'  // Sesuai name="catatan" di Blade Dokumen
     ]);
 
     $permohonan = PermohonanBantuan::findOrFail($request->id_permohonan);
     
-    // Update status berdasarkan input keputusan_akhir
+    // Alur Akhir: Jika lolos dokumen, status jadi 'disetujui_admin' agar muncul di Penyaluran
     $permohonan->update([
-        'status' => $request->keputusan_akhir,
-        'catatan_petugas' => $request->catatan_verifikasi,
+        'status' => $request->status,
+        'catatan_petugas' => $request->catatan,
         'updated_at' => now()
     ]);
 
-    // Redirect kembali ke daftar dokumen setelah selesai
-    return redirect()->route('petugas.bantuan.dokumen.list')
-                     ->with('success', 'Verifikasi dokumen berhasil diselesaikan.');
+    return redirect()->route('petugas.bantuan.dokumen.list')->with('success', 'Verifikasi dokumen selesai. Data siap disalurkan.');
 }
 
     public function listValidasiUsaha()
@@ -248,26 +246,27 @@ public function verifikasiBantuan()
 }
 
     public function storeKelayakanBantuan(Request $request)
-    {
-        $request->validate([
-            'id_permohonan' => 'required|exists:permohonan_bantuans,id',
-            'hasil_kelayakan' => 'required',
-            'catatan_kelayakan' => 'required'
-        ]);
+{
+    $request->validate([
+        'id_permohonan' => 'required|exists:permohonan_bantuans,id',
+        'hasil_kelayakan' => 'required',
+        'catatan_kelayakan' => 'required'
+    ]);
 
-        $permohonan = PermohonanBantuan::findOrFail($request->id_permohonan);
-        
-        // Update status berdasarkan keputusan petugas
-        $status = ($request->hasil_kelayakan == 'disetujui') ? 'verifikasi_upt' : $request->hasil_kelayakan;
+    $permohonan = PermohonanBantuan::findOrFail($request->id_permohonan);
+    
+    // Logika Alur: Jika disetujui di lapangan, status jadi 'verifikasi_upt' (masuk ke cek dokumen)
+    $status = ($request->hasil_kelayakan == 'disetujui') ? 'verifikasi_upt' : $request->hasil_kelayakan;
 
-        $permohonan->update([
-            'status' => $status,
-            'catatan_petugas' => $request->catatan_kelayakan, // Pastikan kolom ini ada di migrasi
-            'updated_at' => now()
-        ]);
+    $permohonan->update([
+        'status' => $status,
+        'catatan_petugas' => $request->catatan_kelayakan,
+        'updated_at' => now()
+    ]);
 
-        return back()->with('success', 'Verifikasi kelayakan bantuan berhasil disimpan.');
-    }
+    // Redirect ke list bantuan (pending) karena data ini sudah pindah ke list dokumen
+    return redirect()->route('petugas.bantuan.list')->with('success', 'Verifikasi kelayakan berhasil. Data diteruskan ke bagian dokumen.');
+}
 
     // Tampilkan Daftar Dokumen (image_9603bc.png)
 public function listVerifikasiDokumen()

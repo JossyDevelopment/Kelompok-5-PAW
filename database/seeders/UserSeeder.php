@@ -37,7 +37,7 @@ class UserSeeder extends Seeder
             'email' => 'petugas@dinas.com',
             'password' => Hash::make('password123'),
             'nama_lengkap' => 'Budi Santoso (Petugas)',
-            'nomor_hp' => '082222222222',
+            'nomor_hp' => '082222222222',   
             'role' => 'petugas',
             'status_aktif' => true,
         ]
