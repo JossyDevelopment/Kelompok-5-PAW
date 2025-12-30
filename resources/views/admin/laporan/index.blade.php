@@ -54,10 +54,6 @@
                     <span class="text-sm font-bold text-gray-600">Verifikasi Selesai</span>
                     <span class="text-sm font-bold text-green-600">{{ $ringkasan['verifikasi_selesai'] }} verifikasi</span>
                 </div>
-                <div class="flex items-center justify-between p-6 bg-gray-50/50 rounded-2xl">
-                    <span class="text-sm font-bold text-gray-600">Tingkat Approval</span>
-                    <span class="text-sm font-bold text-purple-600">{{ $ringkasan['tingkat_approval'] }}%</span>
-                </div>
             </div>
         </div>
 

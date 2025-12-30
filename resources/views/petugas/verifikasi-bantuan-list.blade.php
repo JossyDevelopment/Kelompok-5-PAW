@@ -17,11 +17,7 @@
         </div>
         <div class="flex flex-col md:flex-row gap-4 justify-between">
             <div class="relative w-full md:w-96">
-                <input type="text" placeholder="Cari Permohonan" class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50/50 outline-none focus:ring-2 focus:ring-green-500">
             </div>
-            <button class="bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-green-800 transition">
-                <i class="fa-solid fa-filter"></i> Filter
-            </button>
         </div>
     </div>
 
@@ -40,9 +36,9 @@
                 <tr class="hover:bg-gray-50 transition">
                     <td class="p-6">
                         <p class="text-sm font-bold text-gray-800">{{ $item->nama_pembudidaya }}</p>
-                        <p class="text-[10px] text-gray-400">Desa {{ $item->desa }}</p>
+                        <p class="text-[10px] text-gray-400">{{ $item->alamat }}</p>
                     </td>
-                    <td class="p-6 text-sm text-gray-500">{{ ucfirst($item->jenis_bantuan) }}</td>
+                    <td class="p-6 text-sm text-gray-500">{{ ucfirst($item->jenis_bantuan) }} {{ $item->detail_kebutuhan }}</td>
                     <td class="p-6 text-sm text-gray-500 italic">
                         {{ $item->status_survei == 'sudah' ? 'Terjadwal' : 'Belum Diverifikasi' }}
                     </td>

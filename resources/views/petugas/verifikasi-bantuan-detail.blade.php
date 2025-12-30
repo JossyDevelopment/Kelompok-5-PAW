@@ -32,7 +32,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase">Lokasi Usaha:</label>
-                    <p class="text-sm font-bold text-gray-700">Desa {{ $permohonan->desa }}, Kec. {{ $permohonan->kecamatan }}</p>
+                    <p class="text-sm font-bold text-gray-700">{{ $permohonan->alamat }}</p>
                 </div>
             </div>
         </div>

@@ -18,11 +18,7 @@
 
         <div class="flex flex-col md:flex-row gap-4 justify-between">
             <div class="relative w-full md:w-96">
-                <input type="text" placeholder="Cari Permohonan" class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50/50">
             </div>
-            <button class="bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-green-800 transition">
-                <i class="fa-solid fa-filter"></i> Filter
-            </button>
         </div>
     </div>
 
@@ -102,10 +98,6 @@
 
                 <div class="px-8 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
                     
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" name="lokasi_sesuai" id="lokasi" class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500">
-                        <label for="lokasi" class="text-sm font-medium text-gray-700">Lokasi sesuai dengan data yang diajukan</label>
-                    </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Luas Lahan Aktual (m²)</label>

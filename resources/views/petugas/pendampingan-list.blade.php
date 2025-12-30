@@ -42,7 +42,16 @@
                                 <i class="fa-solid fa-calendar-plus"></i> Jadwalkan
                             </button>
                         @else
-                            <button onclick="openDetailModal('{{ $item->nama_pembudidaya }}', '{{ $item->topik }}', '{{ $item->created_at->format('Y-m-d') }}', '{{ $item->status }}', '{{ $item->jadwal_pendampingan }}')"
+                            <button onclick="openDetailModal(
+                                    '{{ $item->nama_pembudidaya }}', 
+                                    '{{ $item->topik }}', 
+                                    '{{ $item->created_at->format('Y-m-d') }}', 
+                                    '{{ $item->status }}', 
+                                    '{{ \Carbon\Carbon::parse($item->jadwal_pendampingan)->format('Y-m-d') }}',
+                                    '{{ $item->jam_kunjungan }}',
+                                    '{{ $item->keterangan_petugas }}',
+                                    '{{ $item->detail_keluhan }}'
+                                )"
                             class="text-sm font-bold text-green-700 hover:text-green-900 transition flex items-center gap-1">
                             <i class="fa-solid fa-eye"></i> Lihat Detail
                         </button>
@@ -132,8 +141,9 @@
                         <p class="text-sm font-bold text-gray-800">Tersedia</p>
                     </div>
                 </div>
-                <div class="bg-blue-50 p-4 rounded-lg text-sm text-gray-600">
-                    Kolam beton. Terdapat masalah pH air dan amonia tinggi. Ingin konsultasi cara penanganannya. Lokasi: Pesisir.
+                <div class="bg-blue-50 p-4 rounded-lg text-sm text-gray-600 mb-4">
+                    <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">Kebutuhan/Keluhan Pembudidaya:</label>
+                    <p id="detKebutuhan"></p>
                 </div>
                 <div class="flex justify-end">
                     <button onclick="closeModal('detailModal')" class="px-8 py-2 bg-green-700 text-white rounded-lg font-bold">Tutup</button>
@@ -152,17 +162,26 @@
         document.getElementById('scheduleModal').classList.remove('hidden');
     }
 
-    function openDetailModal(name, topic, date, status, schedule) {
+    function openDetailModal(name, topic, date, status, schedule, time, note,kebutuhan) {
         document.getElementById('detName').innerText = name;
         document.getElementById('detTopic').innerText = topic;
         document.getElementById('detDate').innerText = date;
-        document.getElementById('detailTitle').innerText = "Detail Permohonan Pendampingan: " + name;
+        document.getElementById('detKebutuhan').innerText = kebutuhan || 'Tidak ada catatan kebutuhan.';
         
-        let statusText = status === 'pending' ? 'Menunggu Jadwal' : 'Terjadwal (' + schedule + ')';
+        // Tampilkan Jam dan Catatan di Modal Detail
+       let statusText = "";
+    if (status === 'pending') {
+        statusText = 'Menunggu Jadwal';
+    } else {
+        // Hilangkan detik (:00) agar lebih rapi, misal 10:00:00 jadi 10:00
+        let cleanTime = time ? time.substring(0, 5) : '00:00';
+        statusText = `Terjadwal (${schedule} pukul ${cleanTime})`;
+    }
         document.getElementById('detStatus').innerText = statusText;
         
+        // Anda bisa menambahkan elemen p baru di modal detail untuk menampilkan 'note'
         document.getElementById('detailModal').classList.remove('hidden');
-    }
+}
 
     function closeModal(id) {
         document.getElementById(id).classList.add('hidden');

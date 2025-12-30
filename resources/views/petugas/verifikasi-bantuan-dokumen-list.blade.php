@@ -10,7 +10,6 @@
         <a href="{{ route('petugas.bantuan.index') }}" class="text-sm text-gray-500 hover:text-green-700 flex items-center gap-2 mb-6">
             <i class="fa-solid fa-arrow-left"></i> Kembali ke Ringkasan Tugas
         </a>
-        <input type="text" placeholder="Cari Permohonan" class="w-full md:w-96 pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50/50">
     </div>
 
     <div class="overflow-x-auto">

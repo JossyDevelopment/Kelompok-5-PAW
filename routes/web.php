@@ -49,18 +49,6 @@ Route::get('/reset-password/new/{id}', [AuthController::class, 'showResetPasswor
 Route::post('/reset-password/new', [AuthController::class, 'updatePassword'])->name('password.update');
 
 
-// --- DASHBOARD ROUTES (Agar tidak 404 setelah login) ---
-Route::middleware(['auth'])->group(function () {
-    Route::get('/pembudidaya/dashboard', function () {
-        return "Halo Pembudidaya! Login Berhasil."; // Ganti dengan view nanti
-    });
-    Route::get('/admin/dashboard', function () {
-        return "Halo Admin!";
-    });
-    // Route::get('/petugas/dashboard', function () {
-    //     return "Halo Petugas!";
-    // });
-});
 
 // Update bagian Dashboard Pembudidaya di web.php
 
@@ -88,7 +76,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/pendampingan-ajukan', [PembudidayaController::class, 'storePendampingan'])->name('pendampingan.store');
         
         Route::get('/pendampingan-jadwal', [PembudidayaController::class, 'jadwalFeedback'])->name('pendampingan.jadwal');
-        Route::post('/pendampingan-feedback', [PembudidayaController::class, 'storeFeedback'])->name('pendampingan.feedback');
+        Route::post('/pembudidaya/feedback/store', [PembudidayaController::class, 'storeFeedback'])->name('feedback.store');
     });
 
 });
@@ -133,7 +121,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         
         // Rute placeholder untuk menu lainnya sesuai sidebar gambar
-        Route::get('/master-data', function() { return "Halaman Master Data"; })->name('master');
         Route::get('/master/komoditas', [AdminController::class, 'komoditasIndex'])->name('master.komoditas');
         Route::put('/master/komoditas/{id}/update', [AdminController::class, 'komoditasUpdate'])->name('master.komoditas.update');
         Route::post('/master/komoditas/store', [AdminController::class, 'komoditasStore'])->name('master.komoditas.store');
@@ -159,6 +146,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/permohonan/{id}', [AdminController::class, 'permohonanDestroy'])->name('permohonan.destroy');
 
         Route::get('/pendampingan', [AdminController::class, 'pendampinganIndex'])->name('pendampingan.index');
+        Route::get('/pendampingan/data/{id}', [AdminController::class, 'getPendampinganDetail']);
         Route::get('/laporan', [AdminController::class, 'laporanIndex'])->name('laporan.index');
     });
 });

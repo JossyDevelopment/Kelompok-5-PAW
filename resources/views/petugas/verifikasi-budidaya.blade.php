@@ -54,28 +54,6 @@
 
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-    <h3 class="font-bold text-gray-800 text-base mb-4">Catatan/Feedback Verifikasi</h3>
-    <p class="text-sm text-gray-600 mb-4">
-        Input catatan penting atau feedback yang diberikan kepada pembudidaya terkait hasil verifikasi data.
-    </p>
 
-    <form action="#" method="POST">
-        @csrf
-        <div class="mb-6">
-            <textarea name="catatan_verifikasi" rows="4" class="w-full border border-gray-300 rounded-lg p-4 text-sm focus:ring-green-500 focus:border-green-500 placeholder-gray-400 bg-gray-50/50" placeholder="Masukan catatan verifikasi atau feedback di sini..."></textarea>
-        </div>
-
-        <div class="flex gap-4">
-            <button type="button" class="px-6 py-2.5 rounded-lg border border-green-600 text-green-700 font-bold text-sm hover:bg-green-50 transition">
-                Tandai Selesai
-            </button>
-
-            <button type="submit" class="px-6 py-2.5 rounded-lg bg-green-700 text-white font-bold text-sm hover:bg-green-800 transition shadow-md shadow-green-700/20">
-                Kirim Feedback
-            </button>
-        </div>
-    </form>
-</div>
 
 @endsection

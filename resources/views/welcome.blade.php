@@ -17,7 +17,7 @@
                     Platform digital terpadu untuk mempercepat pendaftaran, verifikasi lapangan, serta validasi data pembudidaya secara transparan, akurat, dan akuntabel.
                 </p>
                 <div class="flex gap-4 mb-12">
-                    <a href="#" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition">
+                    <a href="{{ route('register') }}" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition">
                         Mulai Pendaftaran <i class="fa-solid fa-arrow-right ml-2"></i>
                     </a>
                     <a href="#" class="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition flex items-center gap-2">
@@ -211,7 +211,7 @@
                 </div>
             </div>
 
-            <div>
+            <div id="tentang">
                 <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Keunggulan Platform</span>
                 <h2 class="text-3xl font-bold mt-4 mb-6">Mengapa Menggunakan Sistem Ini?</h2>
                 <p class="text-gray-500 mb-8">Platform yang dirancang khusus untuk memenuhi kebutuhan pendataan dan verifikasi pembudidaya perikanan dengan standar tinggi.</p>
@@ -258,10 +258,10 @@
         </p>
 
         <div class="flex justify-center gap-4 mb-12">
-            <a href="" class="px-8 py-3 bg-white text-blue-600 rounded-lg font-bold hover:bg-gray-100 transition">
+            <a href="{{ route('register') }}" class="px-8 py-3 bg-white text-blue-600 rounded-lg font-bold hover:bg-gray-100 transition">
                 Daftar Sekarang <i class="fa-solid fa-arrow-right ml-2"></i>
             </a>
-            <a href="" class="px-8 py-3 bg-transparent border border-white text-white rounded-lg font-bold hover:bg-white/10 transition">
+            <a href="{{ route('login') }}" class="px-8 py-3 bg-transparent border border-white text-white rounded-lg font-bold hover:bg-white/10 transition">
                 Sudah Punya Akun? Masuk
             </a>
         </div>

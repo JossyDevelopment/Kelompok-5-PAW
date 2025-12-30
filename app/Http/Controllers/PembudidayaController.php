@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\PermohonanBantuan;
 use App\Models\PengajuanPendampingan;
 use App\Models\ProfilPembudidaya;
-use App\Models\wilayah;
+use App\Models\Komoditas;
+use App\Models\wilayahAdmin;
+use App\Models\TopikPendampingAdmin;
 use App\Models\UsahaBudidaya;
 use Carbon\Carbon;
 
@@ -18,53 +21,68 @@ class PembudidayaController extends Controller
     // 1. DASHBOARD
     // ==========================================================
     public function dashboard()
-    {
-        $id_user = Auth::user()->id_user;
+{
+    $id_user = Auth::user()->id_user;
 
-        // Statistik Riil
-        $total_permohonan = PermohonanBantuan::where('id_user', $id_user)->count();
-        $pendampingan_selesai = PengajuanPendampingan::where('id_user', $id_user)
-                                ->where('status', 'selesai')->count();
-        $total_bantuan = 0; 
+    // 1. Statistik Riil
+    $total_permohonan = PermohonanBantuan::where('id_user', $id_user)->count();
+    $pendampingan_selesai = PengajuanPendampingan::where('id_user', $id_user)
+                            ->where('status', 'selesai')->count();
+   $total_bantuan = PermohonanBantuan::where('id_user', $id_user)
+        ->whereIn('status', ['disetujui_admin', 'selesai', 'dikirim']) // Hanya hitung jika sudah ACC
+        ->sum('nilai_estimasi');
 
-        // FIX: Cek kelengkapan ke tabel profil_pembudidaya (bukan tabel users)
-        $profil = ProfilPembudidaya::where('id_user', $id_user)->first();
-        // Cek NIK (huruf besar sesuai migration) dan alamat
-        $status_verifikasi = ($profil && $profil->NIK && $profil->alamat) ? 'Lengkap' : 'Belum Lengkap';
+    // 2. Profil & Usaha Data
+    $profil = ProfilPembudidaya::where('id_user', $id_user)->first();
+    $usaha = DB::table('usaha_budidaya')
+                ->where('id_profil_pembudidaya', $profil->id_profil_pembudidaya ?? 0)
+                ->first();
 
-        // 1. Ambil data Bantuan untuk Timeline
-        $bantuan = PermohonanBantuan::where('id_user', $id_user)
-                ->select('jenis_bantuan as title', 'created_at', 'status')
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'title' => 'Bantuan: ' . ucfirst($item->title),
-                        'date'  => $item->created_at->diffForHumans(),
-                        'description' => 'Status: ' . ucfirst(str_replace('_', ' ', $item->status)),
-                        'status' => ($item->status == 'selesai') ? 'done' : 'current'
-                    ];
-                });
-
-        // 2. Ambil data Pendampingan untuk Timeline
-        $pendampingan = PengajuanPendampingan::where('id_user', $id_user)
-                ->select('topik as title', 'created_at', 'status')
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'title' => 'Pendampingan: ' . $item->title,
-                        'date'  => $item->created_at->diffForHumans(),
-                        'description' => 'Status: ' . ucfirst($item->status),
-                        'status' => ($item->status == 'selesai') ? 'done' : 'current'
-                    ];
-                });
-
-        // 3. Gabungkan dan Urutkan (Hapus baris yang menimpa variabel di bawahnya)
-        $timeline_activities = $bantuan->concat($pendampingan)->sortByDesc('date')->take(5);
-
-        return view('pembudidaya.dashboard', compact(
-            'total_permohonan', 'pendampingan_selesai', 'status_verifikasi', 'total_bantuan', 'timeline_activities'
-        ));
+    // 3. Logic Status Verifikasi (Urutan pengecekan sudah benar)
+    if (!$profil || !$profil->NIK) {
+        $status_verifikasi = 'Data Profil Belum Lengkap';
+    } elseif (!$usaha) {
+        $status_verifikasi = 'Data Usaha Belum Diisi';
+    } elseif ($usaha->status_izin == 'disetujui') {
+        $status_verifikasi = 'Lengkap'; 
+    } elseif ($usaha->status_izin == 'revisi') {
+        $status_verifikasi = 'Perlu Revisi Data';
+    } elseif ($usaha->status_izin == 'ditolak') {
+        $status_verifikasi = 'Ditolak';
+    } else {
+        $status_verifikasi = 'Menunggu Verifikasi UPT';
     }
+
+    // 4. Logic Timeline Terpadu (PENTING: Urutkan sebelum di-map)
+    // Ambil data bantuan
+    $bantuan = PermohonanBantuan::where('id_user', $id_user)
+            ->select('jenis_bantuan as title', 'created_at', 'updated_at', 'status', DB::raw("'bantuan' as tipe"))
+            ->get();
+
+    // Ambil data pendampingan
+    $pendampingan = PengajuanPendampingan::where('id_user', $id_user)
+            ->select('topik as title', 'created_at', 'updated_at', 'status', DB::raw("'pendampingan' as tipe"))
+            ->get();
+
+    // Gabungkan, urutkan berdasarkan waktu pembaruan terakhir (updated_at), lalu ambil 5
+    $timeline_activities = $bantuan->concat($pendampingan)
+            ->sortByDesc('updated_at') // Menggunakan updated_at agar status baru muncul di atas
+            ->take(5)
+            ->map(function($item) {
+                $prefix = ($item->tipe == 'bantuan') ? 'Bantuan: ' : 'Pendampingan: ';
+                return [
+                    'title' => $prefix . ucfirst($item->title),
+                    // Format waktu dilakukan setelah sorting agar sorting akurat
+                    'date'  => $item->updated_at->diffForHumans(), 
+                    'description' => 'Status: ' . ucfirst(str_replace('_', ' ', $item->status)),
+                    'status' => ($item->status == 'selesai') ? 'done' : 'current'
+                ];
+            });
+
+    return view('pembudidaya.dashboard', compact(
+        'total_permohonan', 'pendampingan_selesai', 'status_verifikasi', 'total_bantuan', 'timeline_activities'
+    ));
+}
 
     // ==========================================================
     // 2. PROFIL
@@ -73,7 +91,9 @@ class PembudidayaController extends Controller
         // Ambil user beserta profilnya
         $user = Auth::user();
         $profil = ProfilPembudidaya::where('id_user', $user->id_user)->first();
-        return view('pembudidaya.profil', compact('user', 'profil'));
+        $master_komoditas = Komoditas::where('status', 'Aktif')->orderBy('nama', 'asc')->get();
+        $master_wilayah = WilayahAdmin::where('status', 'Aktif')->orderBy('nama', 'asc')->get();
+        return view('pembudidaya.profil', compact('user', 'profil','master_komoditas', 'master_wilayah'));
     }
     
 
@@ -91,6 +111,7 @@ class PembudidayaController extends Controller
             'NIK' => 'required|numeric|digits:16',
             'nomor_hp' => 'required',
             'alamat' => 'required|string',
+            'kecamatan' => 'required|string',
         ]);
 
         $profil = ProfilPembudidaya::updateOrCreate(
@@ -171,14 +192,25 @@ class PembudidayaController extends Controller
     // ==========================================================
     // 4. STATUS & LACAK
     // ==========================================================
-    public function statusLacak() {
-        $permohonan = PermohonanBantuan::where('id_user', Auth::user()->id_user)
-                        ->orderBy('created_at', 'desc')
-                        ->get();
-        
-        return view('pembudidaya.status', compact('permohonan'));
-    }
+   public function statusLacak() {
+    $id_user = Auth::id();
+    
+    // 1. Ambil profil
+    $profil = ProfilPembudidaya::where('id_user', $id_user)->first();
+    
+    // 2. Ambil status izin dari usaha_budidaya
+    $status_izin = DB::table('usaha_budidaya')
+                    ->where('id_profil_pembudidaya', $profil->id_profil_pembudidaya ?? 0)
+                    ->value('status_izin'); // Ambil nilai kolom status_izin saja
 
+    // 3. Ambil riwayat permohonan bantuan
+    $permohonan = PermohonanBantuan::where('id_user', $id_user)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+    
+    // Kirim data status_izin ke view
+    return view('pembudidaya.status', compact('permohonan', 'profil', 'status_izin'));
+}
     // ==========================================================
     // 5. PENERIMAAN (KONFIRMASI)
     // ==========================================================
@@ -216,7 +248,8 @@ class PembudidayaController extends Controller
     // 6. PENDAMPINGAN TEKNIS (Ajukan & Feedback)
     // ==========================================================
     public function ajukanPendampingan() {
-        return view('pembudidaya.pendampingan-ajukan');
+        $daftar_topik = TopikPendampingAdmin::orderBy('nama_topik', 'asc')->get();
+        return view('pembudidaya.pendampingan-ajukan', compact('daftar_topik'));
     }
 
     public function storePendampingan(Request $request) {
@@ -255,23 +288,24 @@ class PembudidayaController extends Controller
         return view('pembudidaya.pendampingan-jadwal', compact('jadwal_mendatang', 'list_feedback'));
     }
 
-    public function storeFeedback(Request $request) {
-        $request->validate([
-            'id_pendampingan' => 'required',
-            'rating' => 'required|integer|min:1|max:5',
-            'ulasan' => 'required'
-        ]);
+    public function storeFeedback(Request $request)
+{
+    $request->validate([
+        'id_pendampingan' => 'required|exists:pengajuan_pendampingans,id',
+        'rating' => 'required|integer|min:1|max:5',
+        'ulasan_feedback' => 'required|string|min:5',
+    ]);
 
-        $item = PengajuanPendampingan::find($request->id_pendampingan);
-        
-        if($item) {
-            $item->update([
-                'rating' => $request->rating,
-                'ulasan_feedback' => $request->ulasan,
-                'status' => 'selesai' // Pastikan status jadi selesai
-            ]);
-        }
+    $pendampingan = PengajuanPendampingan::findOrFail($request->id_pendampingan);
+    
+    // Simpan feedback
+    $pendampingan->update([
+        'rating' => $request->rating,
+        'ulasan_feedback' => $request->ulasan_feedback,
+        'updated_at' => now()
+    ]);
 
-        return back()->with('success', 'Terima Kasih atas Feedback Anda!');
-    }
+    // Kembali dengan pesan sukses untuk memicu modal ungu/hijau
+    return redirect()->back()->with('success_crud', 'Terima kasih! Feedback Anda telah kami terima.');
+}
 }

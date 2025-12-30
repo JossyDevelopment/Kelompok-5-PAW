@@ -59,8 +59,29 @@
             </div>
         </div>
 
+        <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Kecamatan (Wilayah Usaha)</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </span>
+                    <select name="kecamatan" required class="pl-10 w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
+                        <option value="">-- Pilih Kecamatan --</option>
+                        @foreach($master_wilayah as $wilayah)
+                            <option value="{{ $wilayah->nama }}" 
+                                {{ ($profil->kecamatan ?? '') == $wilayah->nama ? 'selected' : '' }}>
+                                {{ $wilayah->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
         <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-600 mb-2">Alamat</label>
+            <label class="block text-sm font-medium text-gray-600 mb-2">Alamat Lengkap Usaha</label>
             <div class="relative">
                 <span class="absolute top-3 left-3 text-gray-400">
                     <i class="fa-regular fa-building"></i>
@@ -86,10 +107,12 @@
                 <label class="block text-sm font-medium text-gray-600 mb-2">Jenis Komoditas Utama</label>
                 <div class="relative">
                     <select name="jenis_ikan" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
-                        <option value="Udang" {{ ($user->profil->usaha->jenis_ikan ?? '') == 'Udang' ? 'selected' : '' }}>Udang</option>
-                        <option value="Lele" {{ ($user->profil->usaha->jenis_ikan ?? '') == 'Lele' ? 'selected' : '' }}>Lele</option>
-                        <option value="Nila" {{ ($user->profil->usaha->jenis_ikan ?? '') == 'Nila' ? 'selected' : '' }}>Nila</option>
-                        <option value="Bandeng" {{ ($user->profil->usaha->jenis_ikan ?? '') == 'Bandeng' ? 'selected' : '' }}>Bandeng</option>
+                       @foreach($master_komoditas as $item)
+                        <option value="{{ $item->nama }}" 
+                            {{ ($user->profil->usaha->jenis_ikan ?? '') == $item->nama ? 'selected' : '' }}>
+                            {{ $item->nama }}
+                        </option>
+            @endforeach
                     </select>
                     <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
                         <i class="fa-solid fa-chevron-down text-xs"></i>

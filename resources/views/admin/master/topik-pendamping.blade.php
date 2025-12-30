@@ -10,7 +10,6 @@
     <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex gap-2">
         <a href="{{ route('admin.master.komoditas') }}" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 border border-gray-100 transition">Jenis Komoditas</a>
         <a href="{{ route('admin.master.wilayah') }}" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 border border-gray-100 transition">Wilayah</a>
-        <a href="{{ route('admin.master.jenis_bantuan') }}" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 border border-gray-100 transition">Jenis Bantuan</a>
         <a href="{{ route('admin.master.topik') }}" class="px-6 py-2 rounded-xl text-sm font-bold bg-purple-600 text-white shadow-lg shadow-purple-100">Topik Teknis Pendamping</a>
     </div>
 
@@ -43,8 +42,8 @@
                     <tr class="hover:bg-gray-50/50 transition">
                         <td class="px-8 py-5 text-sm font-bold text-gray-600">{{ $topik->firstItem() + $index }}</td>
                         <td class="px-8 py-5 text-sm font-bold text-gray-700">{{ $item->nama_topik }}</td>
-                        <td class="px-8 py-5 text-sm font-bold text-gray-500">{{ $item->kategori }}</td>
-                        <td class="px-8 py-5 text-xs text-gray-500 max-w-xs truncate">{{ $item->deskripsi }}</td>
+                        <td class="px-8 py-5 text-sm font-bold text-gray-700">{{ $item->kategori }}</td>
+                        <td class="px-8 py-5 text-xs font-bold text-gray-700">{{ $item->deskripsi }}</td>
                         <td class="px-8 py-5">
                             <div class="flex items-center justify-center gap-3">
                                 <button onclick="openEditModal({{ $item->id }}, '{{ $item->nama_topik }}', '{{ $item->kategori }}', '{{ $item->deskripsi }}')" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center border border-blue-100"><i class="fa-solid fa-pen-to-square text-xs"></i></button>

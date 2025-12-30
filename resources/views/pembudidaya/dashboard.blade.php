@@ -38,7 +38,7 @@
             </div>
             <p class="text-sm text-gray-500 mb-1">Status Verifikasi Data</p>
             <h3 class="text-2xl font-bold text-gray-800">
-                {{ $status_verifikasi ?? 'Belum Lengkap' }}
+                {{ $status_verifikasi }}
             </h3>
         </div>
 
@@ -92,7 +92,7 @@
                 <p class="text-sm text-gray-500 max-w-md mx-auto mb-6">
                     Anda belum mengajukan permohonan bantuan atau layanan apapun. Silakan lengkapi profil usaha Anda dan ajukan layanan baru.
                 </p>
-                <a href="#" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                <a href="{{ route('pembudidaya.ajukan') }}" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
                     + Ajukan Layanan Baru
                 </a>
             </div>

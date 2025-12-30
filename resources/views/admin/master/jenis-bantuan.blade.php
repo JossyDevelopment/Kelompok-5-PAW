@@ -10,7 +10,6 @@
     <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex gap-2">
         <a href="{{ route('admin.master.komoditas') }}" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 border border-gray-100 transition">Jenis Komoditas</a>
         <a href="{{ route('admin.master.wilayah') }}" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 border border-gray-100 transition">Wilayah</a>
-        <a href="{{ route('admin.master.jenis_bantuan') }}" class="px-6 py-2 rounded-xl text-sm font-bold bg-purple-600 text-white shadow-lg shadow-purple-100">Jenis Bantuan</a>
         <a href="{{ route('admin.master.topik') }}" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 border border-gray-100 transition">Topik Teknis Pendamping</a>
     </div>
 

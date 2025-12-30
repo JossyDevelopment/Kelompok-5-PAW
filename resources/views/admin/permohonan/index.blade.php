@@ -15,7 +15,6 @@
             <div>
                 <h3 class="text-2xl font-bold text-gray-800">{{ number_format($stats['total']) }}</h3>
                 <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Total Permohonan</p>
-                <p class="text-[10px] text-green-500 font-bold mt-1">↑ 12% dari bulan lalu</p>
             </div>
         </div>
 
@@ -26,7 +25,6 @@
             <div>
                 <h3 class="text-2xl font-bold text-gray-800">{{ $stats['disetujui'] }}</h3>
                 <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Disetujui</p>
-                <p class="text-[10px] text-green-500 font-bold mt-1">76% completion rate</p>
             </div>
         </div>
 
@@ -37,7 +35,6 @@
             <div>
                 <h3 class="text-2xl font-bold text-gray-800">{{ $stats['ditolak'] }}</h3>
                 <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Ditolak</p>
-                <p class="text-[10px] text-gray-400 font-bold mt-1">5 Komoditas utama</p>
             </div>
         </div>
 
@@ -48,7 +45,6 @@
             <div>
                 <h3 class="text-2xl font-bold text-gray-800">{{ $stats['menunggu'] }}</h3>
                 <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Menunggu Persetujuan</p>
-                <p class="text-[10px] text-amber-500 font-bold mt-1 underline">Segera tindak lanjuti</p>
             </div>
         </div>
     </div>
@@ -84,17 +80,21 @@
                         <td class="px-8 py-6 text-sm font-bold text-gray-600">{{ $permohonan->firstItem() + $index }}</td>
                         <td class="px-8 py-6">
                             <p class="text-sm font-bold text-gray-800">{{ $item->nama_pemohon }}</p>
-                            <p class="text-[11px] font-medium text-gray-400">({{ $item->lokasi }})</p>
+                            <p class="text-[11px] font-medium text-gray-400">({{ $item->kecamatan }})</p>
                         </td>
                         <td class="px-8 py-6 text-sm font-bold text-gray-600">{{ $item->jenis_bantuan }}</td>
                         <td class="px-8 py-6 text-sm font-bold text-gray-500 text-center">{{ $item->created_at->format('d/m/Y') }}</td>
-                        <td class="px-8 py-6 text-center">
-                            @if($item->status == 'selesai')
+                       <td class="px-8 py-6 text-center">
+                            @if($item->status == 'disetujui_admin' || $item->status == 'selesai')
                                 <span class="px-4 py-1.5 bg-green-50 text-green-600 text-[10px] font-black rounded-lg border border-green-100 uppercase">Disetujui</span>
                             @elseif($item->status == 'ditolak')
                                 <span class="px-4 py-1.5 bg-red-50 text-red-600 text-[10px] font-black rounded-lg border border-red-100 uppercase">Ditolak</span>
+                            @elseif($item->status == 'siap_disetujui_admin')
+                                <span class="px-4 py-1.5 bg-amber-50 text-amber-600 text-[10px] font-black rounded-lg border border-purple-100 uppercase">Menunggu</span>
+                            @elseif($item->status == 'verifikasi_upt')
+                                <span class="px-4 py-1.5 bg-blue-50 text-blue-600 text-[10px] font-black rounded-lg border border-blue-100 uppercase">Proses UPT</span>
                             @else
-                                <span class="px-4 py-1.5 bg-amber-50 text-amber-600 text-[10px] font-black rounded-lg border border-amber-100 uppercase tracking-tighter text-nowrap">Menunggu Persetujuan</span>
+                                <span class="px-4 py-1.5 bg-gray-50 text-gray-400 text-[10px] font-black rounded-lg border border-gray-100 uppercase">Draft/Baru</span>
                             @endif
                         </td>
                         <td class="px-8 py-6">
@@ -218,6 +218,17 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Estimasi Nilai Bantuan (Rp)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 font-bold">Rp</span>
+                            <input type="number" name="nilai_estimasi" id="verNilai" required 
+                                class="w-full border border-gray-200 rounded-2xl p-4 pl-12 text-sm bg-gray-50/30 focus:ring-2 focus:ring-purple-500 outline-none" 
+                                placeholder="Contoh: 5000000">
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1">* Masukkan angka saja tanpa titik/koma</p>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">Catatan Verifikasi UPT</label>
                         <textarea name="catatan_petugas" id="verCatatan" rows="4" required class="w-full border border-gray-200 rounded-2xl p-4 text-sm bg-gray-50/30 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="Masukkan ringkasan hasil verifikasi lapangan..."></textarea>
                     </div>
@@ -226,7 +237,7 @@
                         <label class="block text-sm font-bold text-gray-700 mb-3">Rekomendasi Status</label>
                         <div class="grid grid-cols-2 gap-4">
                             <label class="relative cursor-pointer group">
-                                <input type="radio" name="status" value="selesai" class="peer hidden" required>
+                                <input type="radio" name="status" value="disetujui_admin" class="peer hidden" required>
                                 <div class="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-gray-100 bg-gray-50/50 peer-checked:border-purple-600 peer-checked:bg-purple-50 transition-all">
                                     <i class="fa-solid fa-circle-check text-xl text-gray-400 peer-checked:text-purple-600"></i>
                                     <span class="text-xs font-bold text-gray-500 peer-checked:text-purple-600">Disetujui</span>
@@ -355,6 +366,7 @@
             document.getElementById('verPrioritas').value = data.skala_prioritas || '';
             document.getElementById('verCatatan').value = data.catatan_petugas || '';
 
+            document.getElementById('verNilai').value = data.nilai_estimasi || '';
             // Set URL form action secara dinamis
             let url = "{{ route('admin.permohonan.verifikasi.update', 0) }}";
             form.action = url.replace('/0', '/' + id);

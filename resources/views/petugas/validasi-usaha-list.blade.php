@@ -18,11 +18,6 @@
 
         <div class="flex flex-col md:flex-row gap-4 justify-between">
             <div class="relative w-full md:w-96">
-                <input type="text" placeholder="Cari" class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50/50">
-            </div>
-            <button class="bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-green-800 transition">
-                <i class="fa-solid fa-filter"></i> Filter
-            </button>
         </div>
     </div>
 
@@ -57,7 +52,7 @@
                     <td class="p-6">
                         <button 
                             type="button"
-                            onclick="openValidationModal('{{ $user->id_user }}', '{{ $user->nama_lengkap }}', '{{ $user->komoditas }}', '{{ $user->luas_lahan }}', '{{ $user->alamat }}, Desa {{ $user->desa }}, Kec. {{ $user->kecamatan }}')"
+                            onclick="openValidationModal('{{ $user->id_user }}', '{{ $user->nama_lengkap }}', '{{ $user->komoditas }}', '{{ $user->luas_lahan }}', '{{ $user->alamat }}')"
                             class="text-sm font-bold text-green-700 hover:text-green-900 transition">
                             Validasi Detail
                         </button>
@@ -168,8 +163,9 @@
         document.getElementById('modalNama').innerText = nama;
         document.getElementById('modalKomoditas').innerText = komoditas || 'Belum diisi';
         document.getElementById('modalLuas').innerText = luas + ' M²';
-        document.getElementById('modalAlamat').innerText = alamat;
-
+        
+        const alamatLengkap = `${alamat}`;
+        document.getElementById('modalAlamat').innerText = alamatLengkap;
         const modal = document.getElementById('validationModal');
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';

@@ -17,26 +17,58 @@ use Illuminate\Support\Facades\DB;
 class AdminController extends Controller
 {
     public function index()
-    {
-        // 1. Ambil data untuk Card Statistik
-        $stats = [
-            'total_pembudidaya' => User::where('role', 'pembudidaya')->count(),
-            'bantuan_disalurkan' => PermohonanBantuan::where('status', 'selesai')->count(),
-            'permohonan_pending' => PermohonanBantuan::where('status', 'pending')->count(),
-            'pendampingan_ini' => PengajuanPendampingan::whereMonth('created_at', now()->month)->count(),
-        ];
+{
+    // 1. Card Statistik Riil
+    $stats = [
+        'total_pembudidaya' => User::where('role', 'pembudidaya')->count(),
+        'bantuan_disalurkan' => PermohonanBantuan::where('status', 'selesai')->count(),
+        'permohonan_pending' => PermohonanBantuan::where('status', 'siap_disetujui_admin')->count(),
+        'pendampingan_ini' => PengajuanPendampingan::whereMonth('created_at', now()->month)->count(),
+    ];
 
-        // 2. Data Sebaran Wilayah (image_65b1e8.png)
-        // Menghitung total per kecamatan vs yang sudah verifikasi lapangan (status_survei = sudah)
-        $wilayah = DB::table('profil_pembudidaya')
-            ->select('kecamatan', 
-                DB::raw('count(*) as total'),
-                DB::raw('sum(case when status_survei = "sudah" then 1 else 0 end) as terverifikasi'))
-            ->groupBy('kecamatan')
-            ->get();
+    // 2. Data Trend Pendaftaran (6 Bulan Terakhir)
+    $registrations = User::where('role', 'pembudidaya')
+        ->select(
+            DB::raw('count(id_user) as total'), 
+            DB::raw("DATE_FORMAT(created_at, '%b') as month")
+        )
+        ->where('created_at', '>=', now()->subMonths(6))
+        ->groupBy('month')
+        ->orderBy(DB::raw('MIN(created_at)'), 'asc') 
+        ->get();
 
-        return view('admin.dashboard', compact('stats', 'wilayah'));
-    }
+    $trendData = [
+        'labels' => $registrations->pluck('month'),
+        'values' => $registrations->pluck('total'),
+    ];
+
+    // 3. Data Distribusi Komoditas (Jenis Ikan)
+    $commodities = DB::table('usaha_budidaya')
+        ->select('jenis_ikan', DB::raw('count(*) as total'))
+        ->groupBy('jenis_ikan')
+        ->get();
+        
+    $commodityData = [
+        'labels' => $commodities->pluck('jenis_ikan'),
+        'values' => $commodities->pluck('total'),
+    ];
+
+    // 4. Data Sebaran Wilayah (Kecamatan)
+    $wilayah = DB::table('profil_pembudidaya')
+        ->select('kecamatan', 
+            DB::raw('count(*) as total'),
+            DB::raw('sum(case when status_survei = "sudah" then 1 else 0 end) as terverifikasi'))
+        ->groupBy('kecamatan')
+        ->get();
+
+    $regionData = [
+        'labels' => $wilayah->pluck('kecamatan'),
+        'total' => $wilayah->pluck('total'),
+        'terverifikasi' => $wilayah->pluck('terverifikasi'),
+    ];
+
+    return view('admin.dashboard', compact('stats', 'trendData', 'commodityData', 'regionData'));
+}
 
     public function komoditasIndex(Request $request)
 {
@@ -238,9 +270,9 @@ public function permohonanIndex(Request $request)
     // 1. Statistik untuk Kartu Atas
     $stats = [
         'total' => PermohonanBantuan::count(),
-        'disetujui' => PermohonanBantuan::where('status', 'selesai')->count(),
+        'disetujui' => PermohonanBantuan::where('status', 'disetujui_admin')->count(),
         'ditolak' => PermohonanBantuan::where('status', 'ditolak')->count(),
-        'menunggu' => PermohonanBantuan::whereIn('status', ['pending', 'verifikasi_upt', 'disetujui_admin'])->count(),
+        'menunggu' => PermohonanBantuan::where('status', 'siap_disetujui_admin')->count(),
     ];
 
     // 2. Ambil Data Tabel dengan Join
@@ -248,7 +280,8 @@ public function permohonanIndex(Request $request)
         ->select(
             'permohonan_bantuans.*',
             'profil_pembudidaya.nama as nama_pemohon',
-            'profil_pembudidaya.desa as lokasi'
+            'profil_pembudidaya.desa as lokasi',
+            'profil_pembudidaya.kecamatan'
         );
 
     // Pencarian
@@ -284,7 +317,8 @@ public function permohonanIndex(Request $request)
     $request->validate([
         'skala_prioritas' => 'required',
         'catatan_petugas' => 'required',
-        'status' => 'required' // 'selesai' untuk Disetujui atau 'ditolak'
+        'status' => 'required',
+        'nilai_estimasi' => 'required|numeric'
     ]);
 
     $permohonan = PermohonanBantuan::findOrFail($id);
@@ -293,6 +327,7 @@ public function permohonanIndex(Request $request)
         'skala_prioritas' => $request->skala_prioritas,
         'catatan_petugas' => $request->catatan_petugas,
         'status' => $request->status,
+        'nilai_estimasi' => $request->nilai_estimasi,
         'updated_at' => now()
     ]);
 
@@ -325,17 +360,16 @@ public function pendampinganIndex(Request $request)
     if ($tab == 'rekap') {
         // 2. Data Rekap Topik (image_8241ae.png)
         $topikStats = DB::table('pengajuan_pendampingans')
-            ->join('master_topik_pendamping', 'pengajuan_pendampingans.id_topik', '=', 'master_topik_pendamping.id')
-            ->select('master_topik_pendamping.nama_topik', DB::raw('count(*) as total'))
-            ->groupBy('master_topik_pendamping.nama_topik')
-            ->get();
+        ->select('topik', DB::raw('count(*) as total'))
+        ->groupBy('topik')
+        ->get();
 
         // 3. Data Rekap Wilayah (image_8241ae.png)
-        $wilayahStats = DB::table('pengajuan_pendampingans')
-            ->join('profil_pembudidaya', 'pengajuan_pendampingans.id_user', '=', 'profil_pembudidaya.id_user')
-            ->select('profil_pembudidaya.desa as wilayah', DB::raw('count(*) as total'))
-            ->groupBy('profil_pembudidaya.desa')
-            ->get();
+       $wilayahStats = DB::table('pengajuan_pendampingans')
+        ->join('profil_pembudidaya', 'pengajuan_pendampingans.id_user', '=', 'profil_pembudidaya.id_user')
+        ->select('profil_pembudidaya.kecamatan as wilayah', DB::raw('count(*) as total'))
+        ->groupBy('profil_pembudidaya.kecamatan')
+        ->get();
 
         return view('admin.pendampingan.index', compact('stats', 'topikStats', 'wilayahStats', 'tab'));
     }
@@ -350,26 +384,60 @@ public function pendampinganIndex(Request $request)
     return view('admin.pendampingan.index', compact('stats', 'pendampingan', 'tab'));
 }
 
+    // app/Http/Controllers/AdminController.php
+
+public function getPendampinganDetail($id)
+{
+    $data = PengajuanPendampingan::join('users', 'pengajuan_pendampingans.id_user', '=', 'users.id_user')
+        ->join('profil_pembudidaya', 'users.id_user', '=', 'profil_pembudidaya.id_user')
+        ->leftJoin('usaha_budidaya', 'profil_pembudidaya.id_profil_pembudidaya', '=', 'usaha_budidaya.id_profil_pembudidaya')
+        ->select(
+            'pengajuan_pendampingans.*',
+            'pengajuan_pendampingans.jam_kunjungan',
+            'profil_pembudidaya.nama as nama_pembudidaya',
+            'profil_pembudidaya.nomor_hp',
+            'profil_pembudidaya.alamat',
+            'profil_pembudidaya.desa',
+            'profil_pembudidaya.kecamatan',
+            'usaha_budidaya.jenis_ikan',
+            'usaha_budidaya.luas_kolam',
+            'usaha_budidaya.jumlah_kolam'
+        )
+        ->where('pengajuan_pendampingans.id', $id)
+        ->first();
+
+    if (!$data) {
+        return response()->json(['message' => 'Data tidak ditemukan'], 404);
+    }
+
+    return response()->json($data);
+}
+
     public function laporanIndex()
 {
     $now = Carbon::now();
 
-    // 1. Ringkasan Bulanan
+
     $ringkasan = [
         'pendaftar_baru' => User::where('role', 'pembudidaya')
                             ->whereMonth('created_at', $now->month)->count(),
         'verifikasi_selesai' => DB::table('permohonan_bantuans')
                             ->where('status', '!=', 'pending')
                             ->whereMonth('updated_at', $now->month)->count(),
-        'tingkat_approval' => 94.4, // Ini bisa dihitung dari rasio disetujui/total
     ];
 
-    // 2. Top Komoditas Bulan Ini (Contoh data statis sesuai image_824da3.png)
-    $topKomoditas = [
-        ['nama' => 'Lele', 'jumlah' => 320],
-        ['nama' => 'Nila', 'jumlah' => 245],
-        ['nama' => 'Udang', 'jumlah' => 189],
-    ];
+    $topKomoditas = DB::table('usaha_budidaya')
+        ->select('jenis_ikan as nama', DB::raw('count(*) as jumlah'))
+        ->groupBy('jenis_ikan')
+        ->orderBy('jumlah', 'desc')
+        ->limit(5)
+        ->get()
+        ->map(function($item) {
+            return [
+                'nama' => $item->nama,
+                'jumlah' => $item->jumlah
+            ];
+        });
 
     return view('admin.laporan.index', compact('ringkasan', 'topKomoditas'));
 }

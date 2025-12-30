@@ -17,8 +17,6 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    // 2. Proses Login
-    // 2. Proses Login (YANG SUDAH DIPERBAIKI)
     public function login(Request $request)
     {
         // 1. Validasi input (Tetap gunakan nama field 'username' dari form HTML)
@@ -83,7 +81,7 @@ class AuthController extends Controller
             'password' => 'required|min:6',
         ]);
 
-        $otp = rand(1000, 9999); // Ubah jadi 4 digit
+        $otp = rand(1000, 9999); //4 digit
 
         // 3. Simpan ke Database
         // Catatan: status_aktif = 0 (False)
@@ -102,15 +100,12 @@ class AuthController extends Controller
 
         // 4. Kirim Email OTP (Gunakan Try-Catch agar tidak error jika internet mati)
         try {
-            // Ini cara simpel kirim email tanpa buat file Mailable terpisah
-            // Pastikan .env sudah disetting SMTP Gmail-nya
             Mail::raw("Halo {$user->nama_lengkap}, \n\nKode OTP pendaftaran Anda adalah: {$otp}. \nKode ini berlaku selama 10 menit.", function ($message) use ($user) {
                 $message->to($user->email)
                         ->subject('Kode Verifikasi Dinas Perikanan');
             });
         } catch (\Exception $e) {
             // Jika gagal kirim email (misal tidak ada koneksi), 
-            // kita log saja kodenya untuk testing manual
             \Log::info("Gagal kirim email. Kode OTP User {$user->email}: {$otp}");
         }
 

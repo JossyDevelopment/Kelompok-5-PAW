@@ -15,11 +15,9 @@
             <div class="relative">
                 <select name="topik_pendampingan" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-gray-700 cursor-pointer">
                     <option value="" disabled selected>Pilih topik...</option>
-                    <option value="kualitas_air" selected>Manajemen Kualitas Air</option>
-                    <option value="pakan">Manajemen Pakan</option>
-                    <option value="penyakit">Pengendalian Hama & Penyakit</option>
-                    <option value="teknologi">Teknologi Budidaya (Bioflok/RAS)</option>
-                    <option value="lainnya">Lainnya</option>
+                    @foreach($daftar_topik as $topik)
+                        <option value="{{ $topik->nama_topik }}">{{ $topik->nama_topik }}</option>
+                    @endforeach
                 </select>
                 <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
                     <i class="fa-solid fa-chevron-down text-xs"></i>

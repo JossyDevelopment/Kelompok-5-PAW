@@ -25,11 +25,7 @@
 
         <div class="flex flex-col md:flex-row gap-4 justify-between">
             <div class="relative w-full md:w-96">
-                <input type="text" placeholder="Cari Permohonan" class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50/50">
             </div>
-            <button class="bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-green-800 transition shadow-md shadow-green-700/20">
-                <i class="fa-solid fa-filter"></i> Filter
-            </button>
         </div>
     </div>
 
@@ -69,7 +65,7 @@
                                 </form>
                             @else
                                 <button 
-                                    onclick="openScheduleModal('{{ $user->id_user }}', '{{ $user->nama_lengkap }}', '{{ $user->desa }}, {{ $user->kecamatan }}')"
+                                    onclick="openScheduleModal('{{ $user->id_user }}', '{{ $user->nama_lengkap }}', '{{ $user->alamat }}')"
                                     class="text-sm font-bold text-green-700 hover:text-green-900 transition flex items-center gap-1">
                                     <i class="fa-regular fa-calendar-plus"></i> Jadwalkan
                                 </button>

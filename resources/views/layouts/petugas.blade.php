@@ -122,5 +122,35 @@
         </main>
     </div>
 
+    @if(session('success'))
+    <div id="modalSuccessPetugas" class="fixed inset-0 z-[100] overflow-y-auto">
+        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"></div>
+
+        <div class="relative flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-sm p-12 text-center animate-in fade-in zoom-in duration-300">
+                <div class="flex justify-center mb-8">
+                    <div class="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center shadow-lg shadow-green-100">
+                        <i class="fa-solid fa-check text-5xl text-white"></i>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold text-gray-900 tracking-tight">
+                    {{ session('success') }}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('modalSuccessPetugas');
+            // Sembunyikan otomatis setelah 2 detik
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 2000);
+        });
+    </script>
+    @endif
+
 </body>
 </html>

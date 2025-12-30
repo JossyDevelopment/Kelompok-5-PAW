@@ -37,7 +37,6 @@
                     <th class="p-6">Pembudidaya</th>
                     <th class="p-6">Jenis Bantuan</th>
                     <th class="p-6">Jadwal Survei</th>
-                    <th class="p-6">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -52,13 +51,6 @@
                             {{ $item->updated_at->format('Y-m-d') }}
                         @else
                             <span class="text-gray-400 italic">Belum Dijadwalkan</span>
-                        @endif
-                    </td>
-                    <td class="p-6">
-                        @if($item->status_survei == 'belum')
-                            <button class="text-sm font-bold text-green-600 hover:text-green-800 transition">Jadwalkan</button>
-                        @else
-                            <button class="text-sm font-bold text-green-700 hover:text-green-900 transition">Verifikasi Detail</button>
                         @endif
                     </td>
                 </tr>

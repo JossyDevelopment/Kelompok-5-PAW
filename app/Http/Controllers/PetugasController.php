@@ -94,14 +94,16 @@ public function storeHasilVerifikasiDokumen(Request $request)
 
     $permohonan = PermohonanBantuan::findOrFail($request->id_permohonan);
     
-    // Alur Akhir: Jika lolos dokumen, status jadi 'disetujui_admin' agar muncul di Penyaluran
+   $statusBaru = ($request->status == 'disetujui_admin') ? 'verifikasi_upt_selesai' : $request->status;
+
     $permohonan->update([
-        'status' => $request->status,
+        'status' => $statusBaru,
         'catatan_petugas' => $request->catatan,
         'updated_at' => now()
     ]);
 
-    return redirect()->route('petugas.bantuan.dokumen.list')->with('success', 'Verifikasi dokumen selesai. Data siap disalurkan.');
+    return redirect()->route('petugas.bantuan.dokumen.list')
+        ->with('success', 'Verifikasi Dokumen Berhasil!');
 }
 
     public function listValidasiUsaha()
@@ -144,6 +146,8 @@ public function storeHasilVerifikasiDokumen(Request $request)
 }
 
 // Tambahkan fungsi baru untuk menyimpan jadwal
+// app/Http/Controllers/PetugasController.php
+
 public function storeJadwalSurvei(Request $request)
 {
     $request->validate([
@@ -151,15 +155,16 @@ public function storeJadwalSurvei(Request $request)
         'tanggal_verifikasi' => 'required|date'
     ]);
 
-    // GUNAKAN 'sudah' agar sinkron dengan Blade dan menghindari error 'Data Truncated'
+    // Update status survei DAN simpan tanggal surveinya
     DB::table('profil_pembudidaya')
         ->where('id_user', $request->id_user)
         ->update([
-            'status_survei' => 'sudah', 
+            'status_survei' => 'sudah',
+            'tanggal_survei' => $request->tanggal_verifikasi, // Simpan tanggal input petugas
             'updated_at' => now()
         ]);
 
-    return back()->with('success', 'Jadwal verifikasi berhasil dibuat!');
+    return back()->with('success', 'Jadwal verifikasi lapangan berhasil dibuat dan dikirim ke Pembudidaya!');
 }
 
     public function cancelJadwalSurvei(Request $request)
@@ -213,6 +218,7 @@ public function verifikasiBantuan()
         ->select(
             'permohonan_bantuans.*',
             'profil_pembudidaya.nama as nama_pembudidaya',
+            'profil_pembudidaya.alamat', // TAMBAHKAN INI
             'profil_pembudidaya.desa',
             'profil_pembudidaya.kecamatan',
             'usaha_budidaya.jenis_ikan as komoditas',
@@ -282,16 +288,18 @@ public function listVerifikasiDokumen()
 // Tampilkan Detail Dokumen (image_952225.png)
 public function detailVerifikasiDokumen($id)
 {
-    $permohonan = PermohonanBantuan::join('profil_pembudidaya', 'permohonan_bantuans.id_user', '=', 'profil_pembudidaya.id_user')
+   $permohonan = PermohonanBantuan::join('users', 'permohonan_bantuans.id_user', '=', 'users.id_user')
+        ->join('profil_pembudidaya', 'users.id_user', '=', 'profil_pembudidaya.id_user')
         ->leftJoin('usaha_budidaya', 'profil_pembudidaya.id_profil_pembudidaya', '=', 'usaha_budidaya.id_profil_pembudidaya')
         ->where('permohonan_bantuans.id', $id)
         ->select(
-            'permohonan_bantuans.*', 
+            'permohonan_bantuans.*',
             'profil_pembudidaya.nama as nama_pembudidaya',
+            'profil_pembudidaya.alamat', // TAMBAHKAN INI
             'profil_pembudidaya.desa',
             'profil_pembudidaya.kecamatan',
             'usaha_budidaya.jenis_ikan as komoditas',
-            'usaha_budidaya.luas_kolam'
+            'usaha_budidaya.luas_kolam as skala_usaha'
         )
         ->firstOrFail();
 
@@ -307,13 +315,16 @@ public function storeVerifikasiDokumen(Request $request)
     ]);
 
     $permohonan = PermohonanBantuan::findOrFail($request->id_permohonan);
+    $statusBaru = ($request->status == 'disetujui_admin') ? 'siap_disetujui_admin' : $request->status;
+
     $permohonan->update([
-        'status' => $request->status,
+        'status' => $statusBaru,
         'catatan_petugas' => $request->catatan,
         'updated_at' => now()
     ]);
 
-    return redirect()->route('petugas.bantuan.dokumen.list')->with('success', 'Verifikasi dokumen selesai.');
+    return redirect()->route('petugas.bantuan.dokumen.list')
+        ->with('success', 'Verifikasi dokumen selesai. Menunggu persetujuan akhir dari Admin.');
 }
 
 
@@ -367,13 +378,12 @@ public function uploadBAST(Request $request)
     // 1. Data untuk Form Distribusi
     // Gunakan leftJoin agar data tetap muncul meskipun profil belum sempurna
     $penerima = PermohonanBantuan::leftJoin('profil_pembudidaya', 'permohonan_bantuans.id_user', '=', 'profil_pembudidaya.id_user')
-        // Pastikan status ini SAMA dengan nilai (value) yang ada di <option> View Detail Dokumen
-        ->whereIn('permohonan_bantuans.status', ['disetujui_admin', 'direkomendasikan']) 
+        ->where('permohonan_bantuans.status', 'disetujui_admin') // FILTER KETAT: Hanya status dari Admin
         ->select(
             'permohonan_bantuans.id', 
             'profil_pembudidaya.nama', 
             'permohonan_bantuans.jenis_bantuan',
-            'permohonan_bantuans.id_user' // Tambahan untuk tracking
+            'permohonan_bantuans.id_user'
         )
         ->get();
 
@@ -457,13 +467,17 @@ public function storeJadwalPendampingan(Request $request)
 {
     $request->validate([
         'id' => 'required|exists:pengajuan_pendampingans,id',
-        'jadwal_pendampingan' => 'required|date'
+        'jadwal_pendampingan' => 'required|date',
+        'jam_kunjungan' => 'nullable', 
+        'keterangan' => 'nullable|string'
     ]);
 
     DB::table('pengajuan_pendampingans')
         ->where('id', $request->id)
         ->update([
             'jadwal_pendampingan' => $request->jadwal_pendampingan,
+            'jam_kunjungan' => $request->jam_kunjungan, 
+            'keterangan_petugas' => $request->keterangan, 
             'status' => 'dijadwalkan', // Ubah status agar pindah ke tahap berikutnya
             'updated_at' => now()
         ]);
@@ -476,31 +490,42 @@ public function storeJadwalPendampingan(Request $request)
     // Mengambil pendampingan yang sudah terjadwal untuk dilaporkan hasilnya
     $list_pendampingan = PengajuanPendampingan::join('profil_pembudidaya', 'pengajuan_pendampingans.id_user', '=', 'profil_pembudidaya.id_user')
         ->where('pengajuan_pendampingans.status', 'dijadwalkan')
-        ->select('pengajuan_pendampingans.id', 'profil_pembudidaya.nama', 'pengajuan_pendampingans.topik')
+        ->select('pengajuan_pendampingans.id', 
+        'profil_pembudidaya.nama', 
+        'pengajuan_pendampingans.topik',
+        'pengajuan_pendampingans.jadwal_pendampingan', 
+        'pengajuan_pendampingans.jam_kunjungan'
+        )
         ->get();
 
     return view('petugas.pendampingan-input', compact('list_pendampingan'));
 }
 
     public function storeHasilPendampingan(Request $request)
-    {
-        $request->validate([
-            'id_pendampingan' => 'required',
-            'hasil_pendampingan' => 'required',
-            'file_dokumentasi' => 'required|image|max:5120',
-            'rekomendasi' => 'required',
-        ]);
+{
+    $request->validate([
+        'id_pendampingan' => 'required|exists:pengajuan_pendampingans,id',
+        'hasil_pendampingan' => 'required',
+        'tanggal_selesai' => 'required|date',
+        'jam_selesai' => 'required',
+        'file_dokumentasi' => 'required|image|max:5120',
+        'rekomendasi' => 'required',
+    ]);
 
-        $item = PengajuanPendampingan::findOrFail($request->id_pendampingan);
-        $path = $request->file('file_dokumentasi')->store('dokumentasi_pendampingan', 'public');
+    $item = PengajuanPendampingan::findOrFail($request->id_pendampingan);
+    $path = $request->file('file_dokumentasi')->store('dokumentasi_pendampingan', 'public');
 
-        $item->update([
-            'hasil_pendampingan' => $request->hasil_pendampingan,
-            'file_dokumentasi' => $path,
-            'rekomendasi_tindak_lanjut' => $request->rekomendasi,
-            'status' => 'selesai' // Ubah status menjadi selesai
-        ]);
+    $realisasiSelesai = $request->tanggal_selesai . ' ' . $request->jam_selesai . ':00';
 
-        return back()->with('success', 'Laporan pendampingan berhasil disimpan!');
-    }
+    $item->update([
+        'hasil_pendampingan' => $request->hasil_pendampingan,
+        'file_dokumentasi' => $path,
+        'rekomendasi_tindak_lanjut' => $request->rekomendasi,
+        'waktu_realisasi_selesai' => $realisasiSelesai,
+        'status' => 'selesai',
+        'updated_at' => now()
+    ]);
+
+    return back()->with('success', 'Laporan pendampingan berhasil disimpan!');
+}
     }

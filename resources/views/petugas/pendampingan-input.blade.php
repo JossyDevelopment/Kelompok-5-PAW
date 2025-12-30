@@ -12,12 +12,26 @@
         
         <div>
             <label class="block text-sm font-bold text-gray-700 mb-2">Pilih Pembudidaya:</label>
-            <select name="id_pendampingan" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50/50">
-                <option value="">-- Pilih yang Sudah Selesai Pendampingan --</option>
-                @foreach($list_pendampingan as $p)
-                    <option value="{{ $p->id }}">{{ $p->nama }} (Topik: {{ $p->topik }})</option>
-                @endforeach
-            </select>
+            <select name="id_pendampingan" required class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-green-500 bg-gray-50/50">
+            <option value="">-- Pilih Pembudidaya & Topik --</option>
+            @foreach($list_pendampingan as $p)
+                {{-- Pastikan value adalah ID primary key dari tabel pengajuan_pendampingans --}}
+                <option value="{{ $p->id }}">{{ $p->nama }} - {{ $p->topik }} (Jadwal: {{ \Carbon\Carbon::parse($p->jadwal_pendampingan)->format('d M Y') }} - Pukul {{ \Carbon\Carbon::parse($p->jam_kunjungan)->format('H:i') }} WIB)</option>
+        @endforeach
+    </select>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">Tanggal Selesai Pelaksanaan:</label>
+                <input type="date" name="tanggal_selesai" required 
+                    class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-green-500 bg-white">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">Jam Selesai Pelaksanaan:</label>
+                <input type="time" name="jam_selesai" required 
+                    class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-green-500 bg-white">
+            </div>
         </div>
 
         <div>
