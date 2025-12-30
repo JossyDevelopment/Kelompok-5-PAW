@@ -9,7 +9,6 @@ class PermohonanBantuan extends Model
 {
     use HasFactory;
     
-    // Menggunakan guarded sudah benar untuk memperbolehkan pengisian kolom baru
     protected $guarded = ['id']; 
 
     /**
